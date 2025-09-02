@@ -174,15 +174,21 @@ function restartGame() {
   pendingChoices = null;
   gameOver = false;
 
+  // Reset player stats
   player.hp = player.maxHp;
   player.level = 1;
   player.xp = 0;
   player.xpToNext = 10;
   player.gold = 0;
 
+  // Reset upgrades
+  player.upgrades = [];
+  player.uberUpgrades = [];
+
   const [px, py] = findValidSpawn(1, 1);
   player.reset(px, py);
 }
+
 
 function findValidSpawn(startX, startY) {
   if (map.isWalkable(startX, startY)) return [startX, startY];
