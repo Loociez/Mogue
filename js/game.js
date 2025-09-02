@@ -174,20 +174,15 @@ function restartGame() {
   pendingChoices = null;
   gameOver = false;
 
-  // Reset player stats
-  player.hp = player.maxHp;
-  player.level = 1;
-  player.xp = 0;
-  player.xpToNext = 10;
-  player.gold = 0;
-
-  // Reset upgrades
+  // Clear upgrades directly
   player.upgrades = [];
   player.uberUpgrades = [];
 
+  // Reset player position and stats
   const [px, py] = findValidSpawn(1, 1);
   player.reset(px, py);
 }
+
 
 
 function findValidSpawn(startX, startY) {
@@ -226,7 +221,8 @@ function update() {
     spawnInterval = Math.max(40, spawnInterval - 2);
   }
 
-  if (player.hp > 0) player.update(keys, projectiles);
+  if (player.hp > 0) player.update(projectiles);
+
 
   spawnTimer++;
   if (spawnTimer >= spawnInterval) {

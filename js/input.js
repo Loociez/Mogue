@@ -1,12 +1,17 @@
 export function setupInput(player) {
+  const keys = {};
+
   window.addEventListener("keydown", e => {
-    switch(e.key){
-      case "ArrowUp": player.direction="up"; player.tryMove(0,-1); break;
-      case "ArrowDown": player.direction="down"; player.tryMove(0,1); break;
-      case "ArrowLeft": player.direction="left"; player.tryMove(-1,0); break;
-      case "ArrowRight": player.direction="right"; player.tryMove(1,0); break;
-    }
+    const k = e.key.toLowerCase();
+    keys[k] = true;
+
+    if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k)) e.preventDefault();
   });
 
-  window.addEventListener("keyup", () => player.moving=false);
+  window.addEventListener("keyup", e => {
+    keys[e.key.toLowerCase()] = false;
+  });
+
+  player.inputKeys = keys;
+  player.attackPressed = false; // placeholder for gamepad RT
 }

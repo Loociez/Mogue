@@ -3,43 +3,46 @@ import { Projectile } from "./projectile.js";
 
 export class Player {
   constructor(spriteIndex = 0) {
-    // Start in middle of the map
+    // Position
     this.x = Math.floor(map.width / 2);
     this.y = Math.floor(map.height / 2);
     this.px = this.x * TILE_SIZE;
     this.py = this.y * TILE_SIZE;
-
     this.targetX = this.x;
     this.targetY = this.y;
+
+    // Movement
     this.speed = 4;
-    this.size = TILE_SIZE;
+    this.dir = "down";
+    this.lastDir = null;
+    this.dirPressTime = 0;
+    this.inputQueue = [];
+    this.queueIndex = 0;
+
+    // Combat
     this.hp = 100;
     this.maxHp = 100;
-
-    // combat
     this.damage = 15;
     this.projectileSpeed = 6;
     this.projectileLife = 60;
     this.pierce = 1;
     this.fireCooldown = 0;
     this.fireCooldownMax = 20;
+    this.attacking = false;
 
-    // leveling / progression
+    // Leveling
     this.level = 1;
     this.xp = 0;
     this.xpToNext = 10;
     this.gold = 0;
 
+    // Sprite
     this.spriteSheet = new Image();
     this.spriteSheet.src = "assets/player.png";
-
     this.spriteIndex = spriteIndex;
-    this.dir = "down";
     this.frame = 0;
     this.frameTicker = 0;
     this.frameSpeed = 10;
-    this.attacking = false;
-
     this.spriteFrameMap = {
       up: [0, 1, 2],
       down: [3, 4, 5],
@@ -47,17 +50,24 @@ export class Player {
       right: [9, 10, 11],
     };
 
-    this.lastDir = null;
-    this.dirPressTime = 0;
-    this.inputQueue = [];
-    this.queueIndex = 0;
-
+    // Misc
     this.contactIFrames = 0;
     this.pickupRange = 16;
+
+    // Input state
+    this.inputKeys = {};
+    this.attackPressed = false;
+
+    // Keyboard events
+    window.addEventListener("keydown", e => {
+      this.inputKeys[e.key.toLowerCase()] = true;
+    });
+    window.addEventListener("keyup", e => {
+      this.inputKeys[e.key.toLowerCase()] = false;
+    });
   }
 
   reset(x = this.x, y = this.y) {
-    // Reset player to given tile
     this.x = x;
     this.y = y;
     this.targetX = x;
@@ -65,7 +75,6 @@ export class Player {
     this.px = x * TILE_SIZE;
     this.py = y * TILE_SIZE;
 
-    // Reset stats
     this.hp = this.maxHp;
     this.contactIFrames = 0;
     this.inputQueue = [];
@@ -74,113 +83,156 @@ export class Player {
     this.dir = "down";
   }
 
-  update(keys, projectiles) {
-    const now = performance.now();
-    if (this.contactIFrames > 0) this.contactIFrames--;
+  keyHeld(key) {
+    return !!this.inputKeys[key];
+  }
 
-    // --- Determine pressed directions ---
-    const directions = [];
-    if (keys["ArrowUp"]) directions.push("up");
-    if (keys["ArrowDown"]) directions.push("down");
-    if (keys["ArrowLeft"]) directions.push("left");
-    if (keys["ArrowRight"]) directions.push("right");
+  update(projectiles = []) {
+  const now = performance.now();
+  if (this.contactIFrames > 0) this.contactIFrames--;
 
-    // --- Update input queue ---
-    this.inputQueue = directions;
-    if (this.queueIndex >= this.inputQueue.length) this.queueIndex = 0;
+  // --- Gamepad ---
+  const gamepads = navigator.getGamepads();
+  if (gamepads) {
+    for (let gp of gamepads) {
+      if (!gp) continue;
+      const lx = gp.axes[0];
+      const ly = gp.axes[1];
+      const rt = gp.buttons[7]?.pressed;
+      const threshold = 0.4; // deadzone
 
-    // --- Face current queued direction ---
-    if (this.inputQueue.length > 0) {
-      const currentDir = this.inputQueue[this.queueIndex];
-      if (this.lastDir !== currentDir) {
-        this.lastDir = currentDir;
-        this.dirPressTime = now;
-      }
-      this.dir = currentDir;
-
-      // Move if held long enough & reached target
-      if (!this.attacking &&
-          this.px === this.targetX * TILE_SIZE &&
-          this.py === this.targetY * TILE_SIZE &&
-          now - this.dirPressTime > 100) {
-
-        let nx = this.x;
-        let ny = this.y;
-        switch (currentDir) {
-          case "up": ny--; break;
-          case "down": ny++; break;
-          case "left": nx--; break;
-          case "right": nx++; break;
+      // Only one direction at a time
+      if (Math.abs(lx) > threshold || Math.abs(ly) > threshold) {
+        if (Math.abs(lx) > Math.abs(ly)) {
+          this.inputKeys["arrowleft"] = lx < -threshold;
+          this.inputKeys["arrowright"] = lx > threshold;
+          this.inputKeys["arrowup"] = false;
+          this.inputKeys["arrowdown"] = false;
+        } else {
+          this.inputKeys["arrowup"] = ly < -threshold;
+          this.inputKeys["arrowdown"] = ly > threshold;
+          this.inputKeys["arrowleft"] = false;
+          this.inputKeys["arrowright"] = false;
         }
-
-        if (map.isWalkable(nx, ny)) {
-          this.targetX = nx;
-          this.targetY = ny;
-          this.x = nx;
-          this.y = ny;
-          map.applyTileEffects(this, nx, ny);
-
-          this.queueIndex = (this.queueIndex + 1) % this.inputQueue.length;
-          this.lastDir = this.inputQueue[this.queueIndex];
-          this.dirPressTime = now;
-        }
+      } else {
+        // Stick is in deadzone
+        this.inputKeys["arrowup"] = false;
+        this.inputKeys["arrowdown"] = false;
+        this.inputKeys["arrowleft"] = false;
+        this.inputKeys["arrowright"] = false;
       }
-    } else {
-      this.lastDir = null;
-      this.queueIndex = 0;
+
+      this.attackPressed = rt;
+    }
+  }
+
+  // --- Determine pressed direction ---
+  const keys = this.inputKeys;
+  let direction = null;
+  if (keys["arrowup"] || keys["w"]) direction = "up";
+  else if (keys["arrowdown"] || keys["s"]) direction = "down";
+  else if (keys["arrowleft"] || keys["a"]) direction = "left";
+  else if (keys["arrowright"] || keys["d"]) direction = "right";
+
+  // Only queue current direction
+  if (direction) {
+    this.inputQueue = [direction];
+    this.queueIndex = 0;
+  } else {
+    this.inputQueue = [];
+    this.queueIndex = 0;
+  }
+
+  // --- Face and move ---
+  if (this.inputQueue.length > 0) {
+    const currentDir = this.inputQueue[0];
+    if (this.lastDir !== currentDir) {
+      this.lastDir = currentDir;
+      this.dirPressTime = now;
+    }
+    this.dir = currentDir;
+
+    if (!this.attacking &&
+        this.px === this.targetX * TILE_SIZE &&
+        this.py === this.targetY * TILE_SIZE &&
+        now - this.dirPressTime > 100) {
+
+      let nx = this.x;
+      let ny = this.y;
+      switch (currentDir) {
+        case "up": ny--; break;
+        case "down": ny++; break;
+        case "left": nx--; break;
+        case "right": nx++; break;
+      }
+
+      if (map.isWalkable(nx, ny)) {
+        this.targetX = nx;
+        this.targetY = ny;
+        this.x = nx;
+        this.y = ny;
+        map.applyTileEffects(this, nx, ny);
+      }
+    }
+  } else {
+    this.lastDir = null;
+  }
+
+  // --- Attack ---
+  if ((keys[" "] || this.attackPressed) && this.fireCooldown <= 0) {
+    this.attacking = true;
+    this.fireCooldown = this.fireCooldownMax;
+
+    let vx = 0, vy = 0;
+    switch (this.dir) {
+      case "up": vy = -this.projectileSpeed; break;
+      case "down": vy = this.projectileSpeed; break;
+      case "left": vx = -this.projectileSpeed; break;
+      case "right": vx = this.projectileSpeed; break;
     }
 
-    // --- Attack ---
-    if (keys[" "] && this.fireCooldown <= 0) {
-      this.attacking = true;
-      this.fireCooldown = this.fireCooldownMax;
-
-      let vx = 0, vy = 0;
-      switch (this.dir) {
-        case "up": vy = -this.projectileSpeed; break;
-        case "down": vy = this.projectileSpeed; break;
-        case "left": vx = -this.projectileSpeed; break;
-        case "right": vx = this.projectileSpeed; break;
-      }
+    if (Array.isArray(projectiles)) {
       projectiles.push(
         new Projectile(
           this.px + TILE_SIZE / 2,
           this.py + TILE_SIZE / 2,
-          vx,
-          vy,
+          vx, vy,
           this.damage,
           this.projectileLife,
           this.pierce
         )
       );
-    } else {
-      this.attacking = false;
     }
 
-    if (this.fireCooldown > 0) this.fireCooldown--;
-
-    // --- Smooth movement with clamping to target ---
-    const targetPx = this.targetX * TILE_SIZE;
-    const targetPy = this.targetY * TILE_SIZE;
-
-    if (this.px < targetPx) this.px = Math.min(this.px + this.speed, targetPx);
-    if (this.px > targetPx) this.px = Math.max(this.px - this.speed, targetPx);
-    if (this.py < targetPy) this.py = Math.min(this.py + this.speed, targetPy);
-    if (this.py > targetPy) this.py = Math.max(this.py - this.speed, targetPy);
-
-    // --- Animate ---
-    if (this.px !== targetPx || this.py !== targetPy) {
-      this.frameTicker++;
-      if (this.frameTicker >= this.frameSpeed) {
-        this.frame = (this.frame + 1) % 2;
-        this.frameTicker = 0;
-      }
-    } else if (this.attacking) {
-      this.frame = 2;
-    } else {
-      this.frame = 0;
-    }
+    this.attackPressed = false; // reset gamepad trigger
+  } else {
+    this.attacking = false;
   }
+
+  if (this.fireCooldown > 0) this.fireCooldown--;
+
+  // --- Smooth movement ---
+  const targetPx = this.targetX * TILE_SIZE;
+  const targetPy = this.targetY * TILE_SIZE;
+  if (this.px < targetPx) this.px = Math.min(this.px + this.speed, targetPx);
+  if (this.px > targetPx) this.px = Math.max(this.px - this.speed, targetPx);
+  if (this.py < targetPy) this.py = Math.min(this.py + this.speed, targetPy);
+  if (this.py > targetPy) this.py = Math.max(this.py - this.speed, targetPy);
+
+  // --- Animate ---
+  if (this.px !== targetPx || this.py !== targetPy) {
+    this.frameTicker++;
+    if (this.frameTicker >= this.frameSpeed) {
+      this.frame = (this.frame + 1) % 2;
+      this.frameTicker = 0;
+    }
+  } else if (this.attacking) {
+    this.frame = 2;
+  } else {
+    this.frame = 0;
+  }
+}
+
 
   draw(ctx) {
     if (!this.spriteSheet.complete) {
@@ -200,14 +252,12 @@ export class Player {
       this.px, this.py, TILE_SIZE, TILE_SIZE
     );
 
-    // Draw HP bar above player
     ctx.fillStyle = "red";
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE, 4);
     ctx.fillStyle = "green";
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE * (this.hp / this.maxHp), 4);
   }
 
-  // ==== XP / Leveling ====
   gainXp(amount, levelUpCallback) {
     this.xp += amount;
     while (this.xp >= this.xpToNext) {
