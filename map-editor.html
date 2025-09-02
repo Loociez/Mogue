@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Map Editor</title>
+  <style>
+    body { margin: 0; display: flex; }
+    #palette { width: 200px; background: #222; color: white; padding: 10px; }
+    #palette button { display: block; margin: 5px 0; width: 100%; }
+    canvas { border: 1px solid black; image-rendering: pixelated; }
+  </style>
+</head>
+<body>
+  <div id="palette"></div>
+    <canvas id="editorCanvas" width="1024" height="768"></canvas>
+	
+  <script type="module" src="js/editor.js"></script>
+</body>
+</html>
