@@ -133,7 +133,6 @@ function applyChoice(choice) {
   paused = false;
 }
 
-// ==== Restart ====
 function restartGame() {
   enemies = [];
   projectiles = [];
@@ -146,6 +145,7 @@ function restartGame() {
   gameOver = false;
   paused = false;
 
+  // Reset player stats
   player.level = 1;
   player.xp = 0;
   player.xpToNext = 10;
@@ -154,12 +154,21 @@ function restartGame() {
   player.hp = player.maxHp;
   player.damage = 15;
   player.speed = 4;
+  player.pickupRange = 50; // default pickup range
+  player.fireCooldownMax = 30; // default fire rate
+  player.pierce = 1; // default pierce
+  player.projectileSpeed = 6; // default projectile speed
+  player.projectileType = "normal"; // reset projectile to normal
+
+  // Clear all upgrades
   player.upgrades = [];
   player.uberUpgrades = [];
 
+  // Reset position
   const [px, py] = findValidSpawn(1, 1);
   player.reset(px, py);
 }
+
 function findValidSpawn(startX, startY) {
   if (map.isWalkable(startX, startY)) return [startX, startY];
   for (let r = 1; r <= 10; r++)
