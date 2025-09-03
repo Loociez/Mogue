@@ -17,7 +17,6 @@ function findPath(startX, startY, endX, endY, map, avoidTile = true) {
     openSet.sort((a, b) => a.f - b.f);
     const current = openSet.shift();
 
-    // Stop if we are adjacent to target (instead of same tile if avoidTile is true)
     if (
       (avoidTile && Math.abs(current.x - endX) + Math.abs(current.y - endY) === 1) ||
       (!avoidTile && current.x === endX && current.y === endY)
@@ -66,10 +65,6 @@ export class Enemy {
     this.maxHp = 25;
     this.touchDamage = 6;
 
-    this.fireCooldown = 0;
-    this.fireCooldownMax = 60;
-    this.projectileSpeed = 2;
-
     this.spriteSheet = new Image();
     this.spriteSheet.src = "assets/enemy.png";
 
@@ -98,10 +93,12 @@ export class Enemy {
     // Mini-boss properties
     this.isMiniBoss = false;
     this.specialCooldown = 0;
-    this.specialCooldownMax = 300; // special every 5 seconds
+    this.specialCooldownMax = 300;
+    this.specialType = "classic"; // default mini-boss type
+    this.telegraph = null; // used for tracking attack
+    this.rainTelegraph = []; // always initialized
   }
 
-  // Call when taking damage
   takeDamage(amount) {
     this.hp -= amount;
     this.flashTimer = 5;
@@ -112,27 +109,22 @@ export class Enemy {
     const dy = player.y - this.y;
     const distance = Math.abs(dx) + Math.abs(dy);
 
-    // Attack if adjacent
-    if (distance === 1) {
-      if (this.attackCooldown <= 0) {
-        player.takeDamage(this.touchDamage);
-        this.attackCooldown = 30;
-        this.attacking = true;
-      }
+    if (distance === 1 && this.attackCooldown <= 0) {
+      player.takeDamage(this.touchDamage);
+      this.attackCooldown = 30;
+      this.attacking = true;
     } else {
       this.attacking = false;
     }
 
     if (this.attackCooldown > 0) this.attackCooldown--;
 
-    // Update path (stop adjacent to player, not on them)
     this.pathUpdateTicker++;
     if (this.pathUpdateTicker >= 10 || !this.path || this.path.length === 0) {
       this.path = findPath(this.x, this.y, player.x, player.y, map, true);
       this.pathUpdateTicker = 0;
     }
 
-    // Move along path
     if (this.path && this.path.length > 1) {
       const nextTile = this.path[1];
       const tx = nextTile.x * TILE_SIZE;
@@ -158,7 +150,6 @@ export class Enemy {
       }
     }
 
-    // Animate
     if (this.path && this.path.length > 0) {
       this.frameTicker++;
       if (this.frameTicker >= this.frameSpeed) {
@@ -169,32 +160,85 @@ export class Enemy {
       this.frame = 0;
     }
 
-    // Flash timer
     if (this.flashTimer > 0) this.flashTimer--;
 
-    // Mini-boss special attack
     if (this.isMiniBoss) {
       this.specialCooldown--;
       if (this.specialCooldown <= 0) {
         this.specialCooldown = this.specialCooldownMax;
-        // AoE projectile in four directions
-        const speed = 3;
-        const positions = [
-          [speed, 0],
-          [-speed, 0],
-          [0, speed],
-          [0, -speed]
-        ];
-        for (const [vx, vy] of positions) {
-          projectiles.push({
-            x: this.px + TILE_SIZE/2,
-            y: this.py + TILE_SIZE/2,
-            r: 4,
-            vx, vy,
-            damage: this.touchDamage * 1.2,
-            life: 90,
-            pierce: 1
-          });
+
+        switch (this.specialType) {
+          case "classic":
+            const speed = 3;
+            [[speed,0],[-speed,0],[0,speed],[0,-speed]].forEach(([vx,vy]) => {
+              projectiles.push({
+                x: this.px + TILE_SIZE/2,
+                y: this.py + TILE_SIZE/2,
+                r: 4,
+                vx, vy,
+                damage: this.touchDamage * 1.2,
+                life: 90,
+                pierce: 1
+              });
+            });
+            break;
+
+          case "rain":
+            // generate telegraphs if empty
+            if (this.rainTelegraph.length === 0) {
+              for (let i = 0; i < 5; i++) {
+                const offsetX = (Math.random() - 0.5) * TILE_SIZE * 3;
+                const x = player.px + offsetX;
+                const y = player.py - TILE_SIZE * (i+1);
+                this.rainTelegraph.push({ x, y, countdown: 60 });
+              }
+            }
+
+            // countdown and spawn projectiles
+            for (let i = this.rainTelegraph.length - 1; i >= 0; i--) {
+              const t = this.rainTelegraph[i];
+              t.countdown--;
+              if (t.countdown <= 0) {
+                projectiles.push({
+                  x: t.x,
+                  y: t.y,
+                  r: 5,
+                  vx: 0,
+                  vy: 4,
+                  damage: this.touchDamage * 0.8,
+                  life: 120,
+                  pierce: 1,
+                  type: "rain"
+                });
+                this.rainTelegraph.splice(i, 1);
+              }
+            }
+            break;
+
+          case "tracking":
+            if (!this.telegraph) {
+              this.telegraph = { x: player.px, y: player.py, countdown: 60 };
+            } else {
+              this.telegraph.countdown--;
+              if (this.telegraph.countdown <= 0) {
+                const dx = this.telegraph.x - this.px;
+                const dy = this.telegraph.y - this.py;
+                const dist = Math.hypot(dx, dy);
+                const speed = 5;
+                projectiles.push({
+                  x: this.px + TILE_SIZE/2,
+                  y: this.py + TILE_SIZE/2,
+                  r: 6,
+                  vx: (dx/dist)*speed,
+                  vy: (dy/dist)*speed,
+                  damage: this.touchDamage * 1.5,
+                  life: 90,
+                  pierce: 1
+                });
+                this.telegraph = null;
+              }
+            }
+            break;
         }
       }
     }
@@ -211,39 +255,43 @@ export class Enemy {
     const animFrame = frames[this.frame];
 
     const tilesPerRow = 1024 / TILE_SIZE;
-
     const baseFrame = 8 + (this.spriteIndex * 12); 
     const actualFrame = baseFrame + animFrame;
-
     const sx = (actualFrame % tilesPerRow) * TILE_SIZE;
     const sy = Math.floor(actualFrame / tilesPerRow) * TILE_SIZE;
 
     if (this.flashTimer > 0) ctx.globalAlpha = 0.5;
 
-    ctx.drawImage(
-      this.spriteSheet,
-      sx, sy, TILE_SIZE, TILE_SIZE,
-      this.px, this.py, TILE_SIZE, TILE_SIZE
-    );
+    ctx.drawImage(this.spriteSheet, sx, sy, TILE_SIZE, TILE_SIZE, this.px, this.py, TILE_SIZE, TILE_SIZE);
 
     if (this.flashTimer > 0) ctx.globalAlpha = 1;
 
-    // HP bar
     ctx.fillStyle = "red";
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE, 4);
     ctx.fillStyle = "green";
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE * (this.hp / this.maxHp), 4);
+
+    if (this.isMiniBoss) {
+      ctx.fillStyle = "yellow";
+      ctx.font = "bold 12px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("MINI-BOSS", this.px + TILE_SIZE / 2, this.py - 10);
+      ctx.textAlign = "left";
+    }
   }
 }
 
-// === Mini-boss spawner for game.js ===
-export function spawnMiniBoss(x, y) {
-  const mb = new Enemy(x, y, 3, "mini-boss"); // spriteIndex 3
+// === Mini-boss spawners ===
+export function spawnMiniBoss(x, y, type = "classic") {
+  const mb = new Enemy(x, y, 3, "mini-boss");
   mb.isMiniBoss = true;
   mb.maxHp = 500;
   mb.hp = mb.maxHp;
   mb.touchDamage = 20;
   mb.speed = 0.7;
+  mb.specialCooldownMax = 120; 
   mb.specialCooldown = mb.specialCooldownMax;
+  mb.specialType = type;
+  mb.rainTelegraph = [];
   return mb;
 }

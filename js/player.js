@@ -3,58 +3,53 @@ import { Projectile } from "./projectile.js";
 
 export class Player {
   constructor(characterType = "warrior", spriteSlot = 0) {
-    this.characterType = characterType;
-    this.spriteSlot = spriteSlot; // 0-31
-    this.setCharacter(characterType, spriteSlot);
+  this.characterType = characterType;
+  this.spriteSlot = spriteSlot; // 0-31
+  this.setCharacter(characterType, spriteSlot);
 
-    // Position
-    this.x = Math.floor(map.width / 2);
-    this.y = Math.floor(map.height / 2);
-    this.px = this.x * TILE_SIZE;
-    this.py = this.y * TILE_SIZE;
-    this.targetX = this.x;
-    this.targetY = this.y;
+  // Position
+  this.x = Math.floor(map.width / 2);
+  this.y = Math.floor(map.height / 2);
+  this.px = this.x * TILE_SIZE;
+  this.py = this.y * TILE_SIZE;
+  this.targetX = this.x;
+  this.targetY = this.y;
 
-    // Movement
-    this.speed = this.baseSpeed;
-    this.dir = "down";
-    this.lastDir = null;
-    this.dirPressTime = 0;
-    this.inputQueue = [];
-    this.queueIndex = 0;
+  // Movement
+  this.dir = "down";
+  this.lastDir = null;
+  this.dirPressTime = 0;
+  this.inputQueue = [];
+  this.queueIndex = 0;
 
-    // Combat
-    this.maxHp = this.baseHp;
-    this.hp = this.maxHp;
-    this.damage = this.baseDamage;
-    this.projectileType = "normal";
-    this.projectileSpeed = 6;
-    this.projectileLife = 60;
-    this.pierce = 1;
-    this.fireCooldown = 0;
-    this.fireCooldownMax = 20;
-    this.attacking = false;
+  // Combat
+  this.fireCooldown = 0;
+  this.attacking = false;
 
-    // Leveling
-    this.level = 1;
-    this.xp = 0;
-    this.xpToNext = 10;
-    this.gold = 0;
+  // Leveling
+  this.level = 1;
+  this.xp = 0;
+  this.xpToNext = 10;
+  this.gold = 0;
 
-    // Sprite
-    this.spriteSheet = new Image();
-    this.spriteSheet.src = "assets/player.png";
-    this.frame = 0;
-    this.frameTicker = 0;
-    this.frameSpeed = 5;
+  // Sprite
+  this.spriteSheet = new Image();
+  this.spriteSheet.src = "assets/player.png";
+  this.frame = 0;
+  this.frameTicker = 0;
+  this.frameSpeed = 5;
 
-    // Misc
-    this.contactIFrames = 0;
-    this.pickupRange = 16;
+  // Misc
+  this.contactIFrames = 0;
+  this.pickupRange = 16;
 
-    // Input state
-    this.inputKeys = {};
-    this.attackPressed = false;
+  // Input state
+  this.inputKeys = {};
+  this.attackPressed = false;
+
+  // Keyboard events
+  window.addEventListener("keydown", e => { this.inputKeys[e.key.toLowerCase()] = true; });
+  window.addEventListener("keyup", e => { this.inputKeys[e.key.toLowerCase()] = false; });
 
     // Keyboard events
     window.addEventListener("keydown", e => { this.inputKeys[e.key.toLowerCase()] = true; });
@@ -91,21 +86,49 @@ for (let id in touchMap) {
   }
 
   setCharacter(characterType, slot = 0) {
-    this.characterType = characterType;
-    this.spriteSlot = slot;
+  this.characterType = characterType;
+  this.spriteSlot = slot;
 
-    switch (characterType) {
-      case "warrior": this.baseDamage=18; this.baseSpeed=4; this.baseHp=120; this.projectileType="normal"; break;
-      case "archer": this.baseDamage=12; this.baseSpeed=4.5; this.baseHp=100; this.projectileType="spread"; break;
-      case "mage": this.baseDamage=10; this.baseSpeed=4; this.baseHp=90; this.projectileType="homing"; break;
-      default: this.baseDamage=15; this.baseSpeed=4; this.baseHp=100; this.projectileType="normal";
-    }
+  switch (characterType) {
+  case "warrior":
+    this.baseDamage = 18;
+    this.baseSpeed = 4;
+    this.baseHp = 120;
+    this.projectileType = "normal";
+    this.projectileSpeed = 6;
+    this.projectileLife = 60;
+    this.pierce = 1;
+    this.fireCooldownMax = 20;
+    break;
+  case "archer":
+    this.baseDamage = 12;
+    this.baseSpeed = 4.5;
+    this.baseHp = 100;
+    this.projectileType = "spread";
+    this.projectileSpeed = 6;
+    this.projectileLife = 60;
+    this.pierce = 1;
+    this.fireCooldownMax = 20;
+    break;
+  case "mage":
+    this.baseDamage = 10;
+    this.baseSpeed = 4;
+    this.baseHp = 90;
+    this.projectileType = "homing";
+    this.projectileSpeed = 5;
+    this.projectileLife = 80;
+    this.pierce = 1;
+    this.fireCooldownMax = 20;
+    break;
+}
 
-    this.maxHp = this.baseHp;
-    this.hp = this.maxHp;
-    this.speed = this.baseSpeed;
-    this.damage = this.baseDamage;
-  }
+
+  this.maxHp = this.baseHp;
+  this.hp = this.maxHp;
+  this.speed = this.baseSpeed;
+  this.damage = this.baseDamage;
+}
+
 
   setSpriteSlot(slot) {
     this.spriteSlot = slot;
@@ -167,14 +190,25 @@ for (let id in touchMap) {
       };
 
       switch(this.projectileType){
-        case "spread":
-          [-0.2,0,0.2].forEach(a=>{
-            const speed=this.projectileSpeed;
-            let vx=0, vy=0;
-            switch(this.dir){ case "up": vy=-speed; break; case "down": vy=speed; break; case "left": vx=-speed; break; case "right": vx=speed; break; }
-            spawnProjectile(vx,vy,"spread");
-          });
-          break;
+       case "spread":
+  // get base angle from direction
+  let baseAngle = 0;
+  switch(this.dir){
+    case "up": baseAngle = -Math.PI/2; break;
+    case "down": baseAngle = Math.PI/2; break;
+    case "left": baseAngle = Math.PI; break;
+    case "right": baseAngle = 0; break;
+  }
+
+  const spread = Math.PI / 12; // 15 degrees
+  [-1,0,1].forEach(offset=>{
+    const angle = baseAngle + offset * spread;
+    const vx = Math.cos(angle) * this.projectileSpeed;
+    const vy = Math.sin(angle) * this.projectileSpeed;
+    spawnProjectile(vx, vy, "spread");
+  });
+  break;
+
         default:
           let vx=0, vy=0;
           switch(this.dir){ case "up": vy=-this.projectileSpeed; break; case "down": vy=this.projectileSpeed; break; case "left": vx=-this.projectileSpeed; break; case "right": vx=this.projectileSpeed; break; }

@@ -12,6 +12,7 @@ let enemies = [
 ];
 
 let canvas, ctx, gameWidth, gameHeight;
+let animationId = null;
 
 // ==== HUD Elements ====
 const hudHp = document.getElementById("hp");
@@ -29,7 +30,8 @@ let spawnTimer = 0;
 let spawnInterval = 180;
 let difficulty = 1;
 let frameCount = 0;
-let paused = false;
+let paused = false;      // stops game updates
+let menuActive = false;  // stops player input during upgrades/menus
 let gameOver = false;
 
 // Level-up / upgrades
@@ -37,19 +39,18 @@ let pendingChoices = null;
 
 // ==== Player ====
 let player;
-let selectedSpriteSlot = 0; // default sprite row
+let selectedSpriteSlot = 0;
 
 // ==== Input ====
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !pendingChoices) paused = !paused;
-  keys[e.key] = true;
+  if (!menuActive) keys[e.key] = true;
 });
-window.addEventListener("keyup", (e) => (keys[e.key] = false));
+window.addEventListener("keyup", (e) => { if (!menuActive) keys[e.key] = false; });
 
 // ==== Spawning ====
 function spawnEnemy() {
   const minDistance = 5;
-
   for (let i = 0; i < 8; i++) {
     const side = Math.floor(Math.random() * 4);
     let tx, ty;
@@ -60,7 +61,12 @@ function spawnEnemy() {
 
     if (!map.isWalkable(tx, ty) || Math.abs(tx - player.x) + Math.abs(ty - player.y) < minDistance) continue;
 
-    if (Math.random() < 0.02) { enemies.push(spawnMiniBoss(tx, ty)); return; }
+    if (Math.random() < 0.05) {
+      const types = ["classic", "rain", "tracking"];
+      const type = types[Math.floor(Math.random() * types.length)];
+      enemies.push(spawnMiniBoss(tx, ty, type));
+      return;
+    }
 
     let type = "normal", spriteIndex = 0;
     const rand = Math.random();
@@ -70,16 +76,24 @@ function spawnEnemy() {
     else if (rand < 0.4) { type = "tank"; spriteIndex = 4; }
     else if (rand < 0.5) { type = "spitter"; spriteIndex = 5; }
     else if (rand < 0.6) { type = "bossling"; spriteIndex = 6; }
+    else if (rand < 0.7) { type = "assassin"; spriteIndex = 7; }
+    else if (rand < 0.8) { type = "wizard"; spriteIndex = 8; }
+    else if (rand < 0.9) { type = "golem"; spriteIndex = 9; }
+    else { type = "archer"; spriteIndex = 10; }
 
     const e = new Enemy(tx, ty, spriteIndex, type);
     switch (type) {
-      case "brute": e.maxHp = 120 + 30 * difficulty; e.hp = e.maxHp; e.touchDamage = 12 + 3 * difficulty; e.speed = 0.8; break;
-      case "shooter": e.maxHp = 80 + 25 * difficulty; e.hp = e.maxHp; e.touchDamage = 6 + 2 * difficulty; e.speed = 0.9; e.projectileSpeed = 3; e.fireCooldownMax = 120; e.fireCooldown = e.fireCooldownMax; break;
-      case "fast": e.maxHp = 40 + 10 * difficulty; e.hp = e.maxHp; e.touchDamage = 4 + difficulty; e.speed = 1.8; break;
-      case "tank": e.maxHp = 150 + 50 * difficulty; e.hp = e.maxHp; e.touchDamage = 10 + 2 * difficulty; e.speed = 0.6; break;
-      case "spitter": e.maxHp = 60 + 20 * difficulty; e.hp = e.maxHp; e.touchDamage = 3 + 1 * difficulty; e.speed = 1.0; e.projectileSpeed = 2.5; e.fireCooldownMax = 90; e.fireCooldown = e.fireCooldownMax; break;
-      case "bossling": e.maxHp = 200 + 50 * difficulty; e.hp = e.maxHp; e.touchDamage = 15 + 4 * difficulty; e.speed = 1.0; e.projectileSpeed = 3; e.fireCooldownMax = 100; e.fireCooldown = e.fireCooldownMax; break;
-      default: e.maxHp = 50 + 15 * difficulty; e.hp = e.maxHp; e.touchDamage = 5 + 1.5 * difficulty; e.speed = Math.min(1.2 + 0.05 * difficulty, 2.5);
+      case "brute": e.maxHp = 120 + 30*difficulty; e.hp=e.maxHp; e.touchDamage=12+3*difficulty; e.speed=0.8; break;
+      case "shooter": e.maxHp = 80 + 25*difficulty; e.hp=e.maxHp; e.touchDamage=6+2*difficulty; e.speed=0.9; e.projectileSpeed=3; e.fireCooldownMax=120; e.fireCooldown=e.fireCooldownMax; break;
+      case "fast": e.maxHp = 40 + 10*difficulty; e.hp=e.maxHp; e.touchDamage=4+difficulty; e.speed=1.8; break;
+      case "tank": e.maxHp = 150 + 50*difficulty; e.hp=e.maxHp; e.touchDamage=10+2*difficulty; e.speed=0.6; break;
+      case "spitter": e.maxHp = 60 + 20*difficulty; e.hp=e.maxHp; e.touchDamage=3+1*difficulty; e.speed=1.0; e.projectileSpeed=2.5; e.fireCooldownMax=90; e.fireCooldown=e.fireCooldownMax; break;
+      case "bossling": e.maxHp = 200 + 50*difficulty; e.hp=e.maxHp; e.touchDamage=15+4*difficulty; e.speed=1.0; e.projectileSpeed=3; e.fireCooldownMax=100; e.fireCooldown=e.fireCooldownMax; break;
+      case "assassin": e.maxHp = 50 + 15*difficulty; e.hp=e.maxHp; e.touchDamage=8+2*difficulty; e.speed=2.0; break;
+      case "wizard": e.maxHp = 40 + 10*difficulty; e.hp=e.maxHp; e.touchDamage=6+2*difficulty; e.speed=1.2; e.projectileSpeed=3.5; e.fireCooldownMax=90; e.fireCooldown=e.fireCooldownMax; break;
+      case "golem": e.maxHp = 180 + 60*difficulty; e.hp=e.maxHp; e.touchDamage=14+4*difficulty; e.speed=0.5; break;
+      case "archer": e.maxHp = 70 + 20*difficulty; e.hp=e.maxHp; e.touchDamage=5+1.5*difficulty; e.speed=1.0; e.projectileSpeed=2.8; e.fireCooldownMax=100; e.fireCooldown=e.fireCooldownMax; break;
+      default: e.maxHp = 50 + 15*difficulty; e.hp=e.maxHp; e.touchDamage=5+1.5*difficulty; e.speed=1.0;
     }
     e.entryDelay = 30;
     enemies.push(e);
@@ -108,6 +122,7 @@ function init() {
 // ==== Character Selection ====
 function showCharacterSelection() {
   paused = true;
+  menuActive = true;
   const selectionUI = document.getElementById("characterSelect");
   selectionUI.style.display = "block";
   selectionUI.innerHTML = "";
@@ -122,7 +137,7 @@ function showCharacterSelection() {
   slotLabel.textContent = "Select Sprite Slot: ";
   const slotSelect = document.createElement("select");
   slotSelect.id = "spriteSlotSelect";
-  for (let i = 0; i < 32; i++) { // assume max 4 slots
+  for (let i = 0; i < 32; i++) {
     const opt = document.createElement("option");
     opt.value = i;
     opt.textContent = `Slot ${i}`;
@@ -141,6 +156,7 @@ function showCharacterSelection() {
   });
 }
 
+// ==== Player Selection / Start ====
 function selectCharacter(type) {
   const [px, py] = findValidSpawn(1, 1);
   player = new Player(type, selectedSpriteSlot);
@@ -148,6 +164,7 @@ function selectCharacter(type) {
 
   document.getElementById("characterSelect").style.display = "none";
   paused = false;
+  menuActive = false;
 
   enemies = [];
   projectiles = [];
@@ -160,7 +177,8 @@ function selectCharacter(type) {
   pendingChoices = null;
   gameOver = false;
 
-  requestAnimationFrame(gameLoop);
+  if (animationId) cancelAnimationFrame(animationId);
+  animationId = requestAnimationFrame(gameLoop);
 }
 
 // ==== Upgrade UI ====
@@ -175,48 +193,75 @@ function showUpgradeMenu(choices) {
     container.appendChild(btn);
   });
   ui.style.display = "block";
+  menuActive = true;
+  paused = true; // pause the game while upgrade menu is open
 }
-function hideUpgradeMenu() { document.getElementById("upgradeUI").style.display = "none"; }
+
+function hideUpgradeMenu() { 
+  document.getElementById("upgradeUI").style.display = "none"; 
+  menuActive = false;
+  paused = false; // resume game when menu closes
+}
 
 function onLevelUp() {
-  paused = true;
   pendingChoices = (player.level % 10 === 0) ? rollUberUpgrades(player) : rollUpgrades(player);
   showUpgradeMenu(pendingChoices);
 }
+
 function applyChoice(choice) {
-  if (choice.apply) choice.apply(player); else applyUpgrade(player, choice);
-  pendingChoices = null;
-  hideUpgradeMenu();
-  paused = false;
+  if (choice.apply) choice.apply(player);
+  else applyUpgrade(player, choice);
+
+  pendingChoices = null; 
+  hideUpgradeMenu(); // this will also unpause
 }
 
+
 // ==== Game Loop ====
-function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
+function gameLoop() {
+  update();
+  draw();
+  animationId = requestAnimationFrame(gameLoop);
+}
 
 // ==== Update ====
 function update() {
-  if (paused || gameOver || pendingChoices) return;
+  if (paused || gameOver) return;
 
   frameCount++;
   map.updateAnimation();
   if (frameCount % 300 === 0) { difficulty += 0.5; spawnInterval = Math.max(40, spawnInterval - 2); }
 
-  if (player.hp > 0) player.update(projectiles, enemies);
+  if (!menuActive && player.hp > 0) player.update(projectiles, enemies);
 
   spawnTimer++;
   if (spawnTimer >= spawnInterval) { spawnTimer = 0; spawnEnemy(); }
 
-  // Enemy update
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
     if (e.entryDelay > 0) { e.entryDelay--; continue; }
     e.update(player, frameCount, projectiles);
     map.applyTileEffects(e, Math.floor(e.px / TILE_SIZE), Math.floor(e.py / TILE_SIZE));
 
-    if (e.type === "shooter" && e.fireCooldown <= 0) {
-      const vx = ((player.px + TILE_SIZE/2) - (e.px + TILE_SIZE/2)) / 60 * e.projectileSpeed;
-      const vy = ((player.py + TILE_SIZE/2) - (e.py + TILE_SIZE/2)) / 60 * e.projectileSpeed;
-      projectiles.push(new Projectile(e.px + TILE_SIZE/2, e.py + TILE_SIZE/2, vx, vy, e.touchDamage*0.8, 90, 1));
+    // Shooter logic
+    const shooterTypes = ["shooter", "spitter", "wizard", "archer", "bossling"];
+    if (shooterTypes.includes(e.type) && e.fireCooldown <= 0) {
+      const dx = (player.px + TILE_SIZE/2) - (e.px + TILE_SIZE/2);
+      const dy = (player.py + TILE_SIZE/2) - (e.py + TILE_SIZE/2);
+      const dist = Math.hypot(dx, dy);
+      const speed = e.projectileSpeed || 3;
+      const vx = (dx / dist) * speed;
+      const vy = (dy / dist) * speed;
+
+      let projType = "normal";
+      switch(e.type) {
+        case "spitter": projType = "bouncing"; break;
+        case "wizard": projType = "homing"; break;
+        case "archer": projType = "spread"; break;
+        case "bossling": projType = "heavy"; break;
+      }
+
+      projectiles.push(new Projectile(e.px + TILE_SIZE/2, e.py + TILE_SIZE/2, vx, vy, e.touchDamage*0.8, 90, 1, projType));
       e.fireCooldown = e.fireCooldownMax;
     }
     if (e.fireCooldown > 0) e.fireCooldown--;
@@ -230,7 +275,7 @@ function update() {
     }
   }
 
-  // --- Projectile update & collision ---
+  // Projectiles
   projectiles = projectiles.filter(p => p instanceof Projectile);
   for (let i = projectiles.length-1; i>=0; i--) {
     const p = projectiles[i];
@@ -303,7 +348,19 @@ function draw() {
   ctx.restore();
 
   // Enemies
-  enemies.forEach(e => e.draw(ctx));
+  enemies.forEach(e => {
+    if (e.isMiniBoss && Array.isArray(e.rainTelegraph) && e.rainTelegraph.length > 0) {
+      ctx.save();
+      ctx.fillStyle = "rgba(0, 255, 255, 0.4)";
+      e.rainTelegraph.forEach(t => {
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, 6, 0, Math.PI*2);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+    e.draw(ctx);
+  });
 
   // Player
   if (player) player.draw(ctx);

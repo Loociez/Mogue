@@ -8,17 +8,17 @@
     body {
       margin: 0;
       background: black;
+      font-family: sans-serif;
+      color: white;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
-      height: 100vh;
-      overflow: hidden;
-      font-family: sans-serif;
-      color: white;
     }
 
     #hud {
-      width: 1024px;
+      width: 100%;
+      max-width: 1024px;
       display: flex;
       justify-content: space-between;
       padding: 8px 16px;
@@ -69,11 +69,10 @@
     }
 
     canvas {
+      display: block;
       image-rendering: pixelated;
       border: 2px solid white;
-      transform-origin: top center;
-      max-width: 100%;
-      max-height: 100%;
+      margin: 0 auto;
     }
 
     /* Character Selection UI */
@@ -245,23 +244,22 @@
 
   <canvas id="gameCanvas" width="1024" height="768"></canvas>
 
- <!-- Mobile Controls -->
-<div id="mobile-controls">
-  <div class="row">
-    <button id="btnUp" class="control">▲</button>
+  <!-- Mobile Controls -->
+  <div id="mobile-controls">
+    <div class="row">
+      <button id="btnUp" class="control">▲</button>
+    </div>
+    <div class="row">
+      <button id="btnLeft" class="control">◀</button>
+      <button id="btnDown" class="control">▼</button>
+      <button id="btnRight" class="control">▶</button>
+    </div>
   </div>
-  <div class="row">
-    <button id="btnLeft" class="control">◀</button>
-    <button id="btnDown" class="control">▼</button>
-    <button id="btnRight" class="control">▶</button>
+
+  <div id="mobile-actions">
+    <button id="btnAttack" class="control">⚔</button>
+    <button id="btnSpecial" class="control">★</button>
   </div>
-</div>
-
-<div id="mobile-actions">
-  <button id="btnAttack" class="control">⚔</button>
-  <button id="btnSpecial" class="control">★</button>
-</div>
-
 
   <script type="module">
     import { Player } from "./js/player.js";
@@ -291,8 +289,8 @@
         canvas.height = 32;
         const ctx = canvas.getContext("2d");
 
-        const frameX = 0; // first frame
-        const frameY = i * directions + 1; // down-walk row
+        const frameX = 0;
+        const frameY = i * directions + 1;
         ctx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
 
         const label = document.createElement("span");
@@ -307,14 +305,12 @@
           spriteSelected.dataset.slot = i;
           spriteOptions.style.display = "none";
 
-          // Update preview canvas
           selectedCtx.clearRect(0, 0, 32, 32);
           selectedCtx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
         });
       }
     };
 
-    // Toggle dropdown
     spriteSelected.addEventListener("click", () => {
       spriteOptions.style.display = spriteOptions.style.display === "block" ? "none" : "block";
     });
@@ -335,7 +331,17 @@
 
   <script>
     const canvas = document.getElementById("gameCanvas");
+    const hud = document.getElementById("hud");
+    const mobileControls = document.getElementById('mobile-controls');
+    const mobileActions = document.getElementById('mobile-actions');
     const keys = window.keys || {};
+
+    // Hide mobile controls on non-touch devices
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (!isTouchDevice) {
+      mobileControls.style.display = 'none';
+      mobileActions.style.display = 'none';
+    }
 
     function setKey(id, state) {
       if (id === "up" || id === "down" || id === "left" || id === "right") {
@@ -359,17 +365,18 @@
 
     function resizeCanvas() {
       const aspect = 1024 / 768;
-      let w = window.innerWidth;
-      let h = window.innerHeight;
-      if (w / h > aspect) {
-        h = window.innerHeight;
-        w = h * aspect;
-      } else {
-        w = window.innerWidth;
-        h = w / aspect;
+      const maxWidth = window.innerWidth;
+      const maxHeight = window.innerHeight - hud.offsetHeight - 16; // leave room for HUD
+      let width = maxWidth;
+      let height = width / aspect;
+
+      if (height > maxHeight) {
+        height = maxHeight;
+        width = height * aspect;
       }
-      canvas.style.width = w + "px";
-      canvas.style.height = h + "px";
+
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
     }
 
     window.addEventListener("resize", resizeCanvas);
