@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Mogue Classic</title>
   <style>
     body {
@@ -244,22 +245,23 @@
 
   <canvas id="gameCanvas" width="1024" height="768"></canvas>
 
-  <!-- Mobile Controls -->
-  <div id="mobile-controls">
-    <div class="row">
-      <button class="control" data-dir="up">▲</button>
-    </div>
-    <div class="row">
-      <button class="control" data-dir="left">◀</button>
-      <button class="control" data-dir="down">▼</button>
-      <button class="control" data-dir="right">▶</button>
-    </div>
+ <!-- Mobile Controls -->
+<div id="mobile-controls">
+  <div class="row">
+    <button id="btnUp" class="control">▲</button>
   </div>
+  <div class="row">
+    <button id="btnLeft" class="control">◀</button>
+    <button id="btnDown" class="control">▼</button>
+    <button id="btnRight" class="control">▶</button>
+  </div>
+</div>
 
-  <div id="mobile-actions">
-    <button class="control" data-action="attack">⚔</button>
-    <button class="control" data-action="special">★</button>
-  </div>
+<div id="mobile-actions">
+  <button id="btnAttack" class="control">⚔</button>
+  <button id="btnSpecial" class="control">★</button>
+</div>
+
 
   <script type="module">
     import { Player } from "./js/player.js";

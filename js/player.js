@@ -61,25 +61,33 @@ export class Player {
     window.addEventListener("keyup", e => { this.inputKeys[e.key.toLowerCase()] = false; });
 
     // Touch controls
-    const touchMap = {
-      "btnUp": "arrowup",
-      "btnDown": "arrowdown",
-      "btnLeft": "arrowleft",
-      "btnRight": "arrowright",
-      "btnAttack": "attack"
-    };
-    for (let id in touchMap) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      const key = touchMap[id];
-      const press = () => { if (key === "attack") this.attackPressed = true; else this.inputKeys[key] = true; };
-      const release = () => { if (key === "attack") this.attackPressed = false; else this.inputKeys[key] = false; };
-      el.addEventListener("touchstart", e => { e.preventDefault(); press(); });
-      el.addEventListener("mousedown", e => { e.preventDefault(); press(); });
-      el.addEventListener("touchend", e => { e.preventDefault(); release(); });
-      el.addEventListener("mouseup", e => { e.preventDefault(); release(); });
-      el.addEventListener("touchcancel", e => { e.preventDefault(); release(); });
-    }
+const touchMap = {
+  "btnUp": "arrowup",
+  "btnDown": "arrowdown",
+  "btnLeft": "arrowleft",
+  "btnRight": "arrowright",
+  "btnAttack": "attack"
+};
+
+for (let id in touchMap) {
+  const el = document.getElementById(id);
+  if (!el) continue;
+  const key = touchMap[id];
+
+  const press = () => {
+    if (key === "attack") this.attackPressed = true;
+    else this.inputKeys[key] = true;
+  };
+
+  const release = () => {
+    if (key === "attack") this.attackPressed = false;
+    else this.inputKeys[key] = false;
+  };
+
+  el.addEventListener("touchstart", e => { e.preventDefault(); press(); }, { passive: false });
+  el.addEventListener("touchend", e => { e.preventDefault(); release(); }, { passive: false });
+  el.addEventListener("touchcancel", e => { e.preventDefault(); release(); }, { passive: false });
+}
   }
 
   setCharacter(characterType, slot = 0) {
