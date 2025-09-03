@@ -44,7 +44,39 @@ const ALL_UPGRADES = [
     name: "+Pickup Range",
     desc: "+20 pickup radius",
     apply: (p) => (p.pickupRange += 20),
-  }
+  },
+
+  // ==== Projectile Variants ====
+  {
+    key: "spreadShot",
+    name: "Spread Shot",
+    desc: "Fire 3 bullets in a fan",
+    apply: (p) => (p.projectileType = "spread"),
+  },
+  {
+    key: "bouncingShot",
+    name: "Bouncing Shot",
+    desc: "Projectiles bounce off walls",
+    apply: (p) => (p.projectileType = "bouncing"),
+  },
+  {
+    key: "homingShot",
+    name: "Homing Shot",
+    desc: "Projectiles home in on enemies",
+    apply: (p) => (p.projectileType = "homing"),
+  },
+  {
+    key: "heavyShot",
+    name: "Heavy Shot",
+    desc: "Slower, bigger, stronger projectiles",
+    apply: (p) => (p.projectileType = "heavy"),
+  },
+  {
+    key: "normalShot",
+    name: "Normal Shot",
+    desc: "Single default projectile",
+    apply: (p) => (p.projectileType = "normal"),
+  },
 ];
 
 // ===== Uber Upgrades =====

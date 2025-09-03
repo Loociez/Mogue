@@ -27,6 +27,7 @@
       margin-bottom: 8px;
       border-radius: 8px;
       font-size: 14px;
+      z-index: 100;
     }
 
     #upgradeUI {
@@ -67,12 +68,60 @@
     }
 
     canvas {
-  image-rendering: pixelated;
-  border: 2px solid white;
-  transform: scale(1, 0.94); /* scale height slightly down */
-  transform-origin: top center;
-}
+      image-rendering: pixelated;
+      border: 2px solid white;
+      transform-origin: top center;
+      max-width: 100%;
+      max-height: 100%;
+    }
 
+    /* Mobile touch controls */
+    #mobile-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 2000;
+      user-select: none;
+    }
+    #mobile-controls .row {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+    #mobile-controls button.control {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: 1px solid #555;
+      touch-action: none;
+    }
+
+    #mobile-actions {
+      position: fixed;
+      bottom: 40px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 2000;
+      user-select: none;
+    }
+    #mobile-actions button.control {
+      width: 70px;
+      height: 70px;
+      font-size: 28px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: 1px solid #555;
+      touch-action: none;
+    }
   </style>
 </head>
 <body>
@@ -92,6 +141,78 @@
 
   <canvas id="gameCanvas" width="1024" height="768"></canvas>
 
+  <!-- Mobile Controls -->
+  <div id="mobile-controls">
+    <div class="row">
+      <button class="control" data-dir="up">▲</button>
+    </div>
+    <div class="row">
+      <button class="control" data-dir="left">◀</button>
+      <button class="control" data-dir="down">▼</button>
+      <button class="control" data-dir="right">▶</button>
+    </div>
+  </div>
+
+  <div id="mobile-actions">
+    <button class="control" data-action="attack">⚔</button>
+    <button class="control" data-action="special">★</button>
+  </div>
+
   <script type="module" src="js/game.js"></script>
+
+  <!-- Touch + Resize handling -->
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const keys = window.keys || {}; // use your existing key system
+
+    function setKey(id, state) {
+      if (id === "up" || id === "down" || id === "left" || id === "right") {
+        keys[id] = state;
+      }
+      if (id === "attack") {
+        keys[" "] = state; // map to spacebar attack
+      }
+      if (id === "special") {
+        keys["k"] = state; // map to 'K' special
+      }
+    }
+
+    // Touch buttons
+    document.querySelectorAll("#mobile-controls button.control, #mobile-actions button.control")
+      .forEach(btn => {
+        btn.addEventListener("touchstart", e => {
+          e.preventDefault();
+          setKey(btn.dataset.dir || btn.dataset.action, true);
+        });
+        btn.addEventListener("touchend", e => {
+          e.preventDefault();
+          setKey(btn.dataset.dir || btn.dataset.action, false);
+        });
+      });
+
+    // Auto-resize canvas while keeping aspect ratio
+    function resizeCanvas() {
+      const aspect = 1024 / 768;
+      let w = window.innerWidth;
+      let h = window.innerHeight;
+
+      if (w / h > aspect) {
+        // too wide, limit by height
+        h = window.innerHeight;
+        w = h * aspect;
+      } else {
+        // too tall, limit by width
+        w = window.innerWidth;
+        h = w / aspect;
+      }
+
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("orientationchange", resizeCanvas);
+    resizeCanvas();
+  </script>
 </body>
 </html>

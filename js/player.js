@@ -19,6 +19,8 @@ export class Player {
     this.inputQueue = [];
     this.queueIndex = 0;
 
+    this.projectileType = "normal"; // default
+
     // Combat
     this.hp = 100;
     this.maxHp = 100;
@@ -58,13 +60,44 @@ export class Player {
     this.inputKeys = {};
     this.attackPressed = false;
 
-    // Keyboard events
+    // --- Keyboard events ---
     window.addEventListener("keydown", e => {
       this.inputKeys[e.key.toLowerCase()] = true;
     });
     window.addEventListener("keyup", e => {
       this.inputKeys[e.key.toLowerCase()] = false;
     });
+
+    // --- Touch controls ---
+    const touchMap = {
+      "btnUp": "arrowup",
+      "btnDown": "arrowdown",
+      "btnLeft": "arrowleft",
+      "btnRight": "arrowright",
+      "btnAttack": "attack"
+    };
+
+    for (let id in touchMap) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const key = touchMap[id];
+
+      const press = () => {
+        if (key === "attack") this.attackPressed = true;
+        else this.inputKeys[key] = true;
+      };
+
+      const release = () => {
+        if (key === "attack") this.attackPressed = false;
+        else this.inputKeys[key] = false;
+      };
+
+      el.addEventListener("touchstart", e => { e.preventDefault(); press(); });
+      el.addEventListener("mousedown", e => { e.preventDefault(); press(); });
+      el.addEventListener("touchend", e => { e.preventDefault(); release(); });
+      el.addEventListener("mouseup", e => { e.preventDefault(); release(); });
+      el.addEventListener("touchcancel", e => { e.preventDefault(); release(); });
+    }
   }
 
   reset(x = this.x, y = this.y) {
@@ -87,11 +120,11 @@ export class Player {
     return !!this.inputKeys[key];
   }
 
-  update(projectiles = []) {
+  update(projectiles = [], enemies = []) {
   const now = performance.now();
   if (this.contactIFrames > 0) this.contactIFrames--;
 
-  // --- Gamepad ---
+  // --- Gamepad input ---
   const gamepads = navigator.getGamepads();
   if (gamepads) {
     for (let gp of gamepads) {
@@ -99,9 +132,8 @@ export class Player {
       const lx = gp.axes[0];
       const ly = gp.axes[1];
       const rt = gp.buttons[7]?.pressed;
-      const threshold = 0.4; // deadzone
+      const threshold = 0.4;
 
-      // Only one direction at a time
       if (Math.abs(lx) > threshold || Math.abs(ly) > threshold) {
         if (Math.abs(lx) > Math.abs(ly)) {
           this.inputKeys["arrowleft"] = lx < -threshold;
@@ -115,7 +147,6 @@ export class Player {
           this.inputKeys["arrowright"] = false;
         }
       } else {
-        // Stick is in deadzone
         this.inputKeys["arrowup"] = false;
         this.inputKeys["arrowdown"] = false;
         this.inputKeys["arrowleft"] = false;
@@ -134,7 +165,6 @@ export class Player {
   else if (keys["arrowleft"] || keys["a"]) direction = "left";
   else if (keys["arrowright"] || keys["d"]) direction = "right";
 
-  // Only queue current direction
   if (direction) {
     this.inputQueue = [direction];
     this.queueIndex = 0;
@@ -143,7 +173,7 @@ export class Player {
     this.queueIndex = 0;
   }
 
-  // --- Face and move ---
+  // --- Move player ---
   if (this.inputQueue.length > 0) {
     const currentDir = this.inputQueue[0];
     if (this.lastDir !== currentDir) {
@@ -157,8 +187,7 @@ export class Player {
         this.py === this.targetY * TILE_SIZE &&
         now - this.dirPressTime > 100) {
 
-      let nx = this.x;
-      let ny = this.y;
+      let nx = this.x, ny = this.y;
       switch (currentDir) {
         case "up": ny--; break;
         case "down": ny++; break;
@@ -171,27 +200,19 @@ export class Player {
         this.targetY = ny;
         this.x = nx;
         this.y = ny;
-        map.applyTileEffects(this, nx, ny);
+        map.applyTileEffects?.(this, nx, ny);
       }
     }
   } else {
     this.lastDir = null;
   }
 
-  // --- Attack ---
+  // --- Attack / fire projectile ---
   if ((keys[" "] || this.attackPressed) && this.fireCooldown <= 0) {
     this.attacking = true;
     this.fireCooldown = this.fireCooldownMax;
 
-    let vx = 0, vy = 0;
-    switch (this.dir) {
-      case "up": vy = -this.projectileSpeed; break;
-      case "down": vy = this.projectileSpeed; break;
-      case "left": vx = -this.projectileSpeed; break;
-      case "right": vx = this.projectileSpeed; break;
-    }
-
-    if (Array.isArray(projectiles)) {
+    const spawnProjectile = (vx, vy, type = this.projectileType) => {
       projectiles.push(
         new Projectile(
           this.px + TILE_SIZE / 2,
@@ -199,12 +220,40 @@ export class Player {
           vx, vy,
           this.damage,
           this.projectileLife,
-          this.pierce
+          this.pierce,
+          type
         )
       );
+    };
+
+    switch (this.projectileType) {
+      case "spread":
+        const angles = [-0.2, 0, 0.2];
+        angles.forEach(a => {
+          const speed = this.projectileSpeed;
+          let vx = 0, vy = 0;
+          switch (this.dir) {
+            case "up": vx = Math.sin(a) * speed; vy = -Math.cos(a) * speed; break;
+            case "down": vx = Math.sin(a) * speed; vy = Math.cos(a) * speed; break;
+            case "left": vx = -Math.cos(a) * speed; vy = Math.sin(a) * speed; break;
+            case "right": vx = Math.cos(a) * speed; vy = Math.sin(a) * speed; break;
+          }
+          spawnProjectile(vx, vy, "spread");
+        });
+        break;
+
+      default:
+        let vx = 0, vy = 0;
+        switch (this.dir) {
+          case "up": vy = -this.projectileSpeed; break;
+          case "down": vy = this.projectileSpeed; break;
+          case "left": vx = -this.projectileSpeed; break;
+          case "right": vx = this.projectileSpeed; break;
+        }
+        spawnProjectile(vx, vy, this.projectileType);
     }
 
-    this.attackPressed = false; // reset gamepad trigger
+    this.attackPressed = false;
   } else {
     this.attacking = false;
   }
