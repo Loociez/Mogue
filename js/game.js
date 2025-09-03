@@ -35,10 +35,9 @@ let gameOver = false;
 // Level-up / upgrades
 let pendingChoices = null;
 
-// Player
-const player = new Player(1, 1);
-player.maxHp = 100;
-player.hp = player.maxHp;
+// ==== Player ====
+let player;
+let selectedSpriteSlot = 0; // default sprite row
 
 // ==== Input ====
 window.addEventListener("keydown", (e) => {
@@ -95,7 +94,7 @@ function init() {
   gameWidth = canvas.width;
   gameHeight = canvas.height;
 
-  map.load("maps/map.json").then(() => requestAnimationFrame(gameLoop));
+  map.load("maps/map.json").then(() => showCharacterSelection());
 
   canvas.addEventListener("mousemove", (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -103,7 +102,65 @@ function init() {
     mouse.y = e.clientY - rect.top;
   });
 
-  canvas.addEventListener("click", () => { if (gameOver) restartGame(); });
+  canvas.addEventListener("click", () => { if (gameOver) showCharacterSelection(); });
+}
+
+// ==== Character Selection ====
+function showCharacterSelection() {
+  paused = true;
+  const selectionUI = document.getElementById("characterSelect");
+  selectionUI.style.display = "block";
+  selectionUI.innerHTML = "";
+
+  const characters = [
+    { type: "warrior", name: "Warrior", desc: "High HP & damage" },
+    { type: "archer", name: "Archer", desc: "Fires spread projectiles" },
+    { type: "mage", name: "Mage", desc: "Fires homing projectiles" },
+  ];
+
+  const slotLabel = document.createElement("label");
+  slotLabel.textContent = "Select Sprite Slot: ";
+  const slotSelect = document.createElement("select");
+  slotSelect.id = "spriteSlotSelect";
+  for (let i = 0; i < 32; i++) { // assume max 4 slots
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = `Slot ${i}`;
+    slotSelect.appendChild(opt);
+  }
+  slotSelect.addEventListener("change", () => { selectedSpriteSlot = parseInt(slotSelect.value); });
+  selectionUI.appendChild(slotLabel);
+  selectionUI.appendChild(slotSelect);
+  selectionUI.appendChild(document.createElement("br"));
+
+  characters.forEach((c) => {
+    const btn = document.createElement("button");
+    btn.textContent = `${c.name} - ${c.desc}`;
+    btn.onclick = () => selectCharacter(c.type);
+    selectionUI.appendChild(btn);
+  });
+}
+
+function selectCharacter(type) {
+  const [px, py] = findValidSpawn(1, 1);
+  player = new Player(type, selectedSpriteSlot);
+  player.reset(px, py);
+
+  document.getElementById("characterSelect").style.display = "none";
+  paused = false;
+
+  enemies = [];
+  projectiles = [];
+  xpOrbs = [];
+  damageNumbers = [];
+  spawnTimer = 0;
+  spawnInterval = 180;
+  difficulty = 1;
+  frameCount = 0;
+  pendingChoices = null;
+  gameOver = false;
+
+  requestAnimationFrame(gameLoop);
 }
 
 // ==== Upgrade UI ====
@@ -131,53 +188,6 @@ function applyChoice(choice) {
   pendingChoices = null;
   hideUpgradeMenu();
   paused = false;
-}
-
-function restartGame() {
-  enemies = [];
-  projectiles = [];
-  xpOrbs = [];
-  damageNumbers = [];
-  spawnTimer = 0;
-  difficulty = 1;
-  frameCount = 0;
-  pendingChoices = null;
-  gameOver = false;
-  paused = false;
-
-  // Reset player stats
-  player.level = 1;
-  player.xp = 0;
-  player.xpToNext = 10;
-  player.gold = 0;
-  player.maxHp = 100;
-  player.hp = player.maxHp;
-  player.damage = 15;
-  player.speed = 4;
-  player.pickupRange = 50; // default pickup range
-  player.fireCooldownMax = 30; // default fire rate
-  player.pierce = 1; // default pierce
-  player.projectileSpeed = 6; // default projectile speed
-  player.projectileType = "normal"; // reset projectile to normal
-
-  // Clear all upgrades
-  player.upgrades = [];
-  player.uberUpgrades = [];
-
-  // Reset position
-  const [px, py] = findValidSpawn(1, 1);
-  player.reset(px, py);
-}
-
-function findValidSpawn(startX, startY) {
-  if (map.isWalkable(startX, startY)) return [startX, startY];
-  for (let r = 1; r <= 10; r++)
-    for (let dx = -r; dx <= r; dx++)
-      for (let dy = -r; dy <= r; dy++) {
-        const nx = startX + dx, ny = startY + dy;
-        if (map.isWalkable(nx, ny)) return [nx, ny];
-      }
-  return [startX, startY];
 }
 
 // ==== Game Loop ====
@@ -221,7 +231,7 @@ function update() {
   }
 
   // --- Projectile update & collision ---
-  projectiles = projectiles.filter(p => p instanceof Projectile); // ensure type
+  projectiles = projectiles.filter(p => p instanceof Projectile);
   for (let i = projectiles.length-1; i>=0; i--) {
     const p = projectiles[i];
     p.update(enemies);
@@ -296,7 +306,7 @@ function draw() {
   enemies.forEach(e => e.draw(ctx));
 
   // Player
-  player.draw(ctx);
+  if (player) player.draw(ctx);
 
   // Floating damage numbers
   ctx.save();
@@ -331,6 +341,7 @@ function draw() {
 
 // ==== HUD ====
 function updateHUD() {
+  if (!player) return;
   hudHp.textContent = `HP: ${Math.ceil(player.hp)} / ${player.maxHp}`;
   hudXp.textContent = `Lv ${player.level} | XP: ${player.xp} / ${player.xpToNext}`;
   hudGold.textContent = `Gold: ${player.gold}`;
@@ -354,6 +365,18 @@ function circleRectOverlap(cx, cy, r, rx, ry, rw, rh) {
   const ny = Math.max(ry, Math.min(cy, ry+rh));
   const dx = cx-nx, dy = cy-ny;
   return dx*dx+dy*dy <= r*r;
+}
+
+function findValidSpawn(startX, startY) {
+  if (!map) return [startX, startY];
+  if (map.isWalkable(startX, startY)) return [startX, startY];
+  for (let r = 1; r <= 10; r++)
+    for (let dx = -r; dx <= r; dx++)
+      for (let dy = -r; dy <= r; dy++) {
+        const nx = startX + dx, ny = startY + dy;
+        if (map.isWalkable(nx, ny)) return [nx, ny];
+      }
+  return [startX, startY];
 }
 
 window.addEventListener("load", init);

@@ -32,7 +32,7 @@
 
     #upgradeUI {
       position: absolute;
-      top: 60px; /* just below HUD */
+      top: 60px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(0, 0, 0, 0.85);
@@ -73,6 +73,98 @@
       transform-origin: top center;
       max-width: 100%;
       max-height: 100%;
+    }
+
+    /* Character Selection UI */
+    #characterSelect {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.85);
+      padding: 20px;
+      border: 2px solid white;
+      border-radius: 8px;
+      display: none;
+      color: white;
+      text-align: center;
+      z-index: 1000;
+    }
+    #characterSelect h2 {
+      margin-bottom: 12px;
+      font-size: 18px;
+    }
+    #characterSelect button {
+      width: 100%;
+      margin: 6px 0;
+      padding: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid white;
+      border-radius: 4px;
+      background: #222;
+      color: #fff;
+    }
+    #characterSelect button:hover {
+      background: #444;
+    }
+
+    /* Sprite preview canvas */
+    #selectedSpriteCanvas {
+      width: 32px;
+      height: 32px;
+      border: 1px solid white;
+      margin-bottom: 10px;
+      image-rendering: pixelated;
+    }
+
+    /* Custom Sprite Dropdown */
+    .dropdown {
+      position: relative;
+      width: 220px;
+      margin: 10px auto;
+      cursor: pointer;
+      user-select: none;
+      background: #222;
+      border: 1px solid white;
+      border-radius: 4px;
+      color: white;
+    }
+
+    #spriteSelected {
+      padding: 6px;
+    }
+
+    .dropdown-options {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 250px;
+      overflow-y: auto;
+      background: #222;
+      border: 1px solid white;
+      border-radius: 4px;
+      z-index: 1000;
+    }
+
+    .dropdown-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+    }
+
+    .dropdown-option canvas {
+      width: 32px;
+      height: 32px;
+      image-rendering: pixelated;
+      border: 1px solid white;
+    }
+
+    .dropdown-option:hover {
+      background: #444;
     }
 
     /* Mobile touch controls */
@@ -139,6 +231,17 @@
     <div id="upgradeButtons"></div>
   </div>
 
+  <!-- Character Selection UI -->
+  <div id="characterSelect">
+    <h2>Select Your Character</h2>
+    <canvas id="selectedSpriteCanvas" width="32" height="32"></canvas>
+    <div id="spriteDropdown" class="dropdown">
+      <div id="spriteSelected">Select Character</div>
+      <div id="spriteOptions" class="dropdown-options"></div>
+    </div>
+    <button id="startGame">Start Game</button>
+  </div>
+
   <canvas id="gameCanvas" width="1024" height="768"></canvas>
 
   <!-- Mobile Controls -->
@@ -158,26 +261,88 @@
     <button class="control" data-action="special">★</button>
   </div>
 
+  <script type="module">
+    import { Player } from "./js/player.js";
+
+    const characterSelect = document.getElementById("characterSelect");
+    const startBtn = document.getElementById("startGame");
+    const spriteDropdown = document.getElementById("spriteDropdown");
+    const spriteSelected = document.getElementById("spriteSelected");
+    const spriteOptions = document.getElementById("spriteOptions");
+    const selectedSpriteCanvas = document.getElementById("selectedSpriteCanvas");
+    const selectedCtx = selectedSpriteCanvas.getContext("2d");
+
+    const spriteSheet = new Image();
+    spriteSheet.src = "assets/player.png";
+
+    const totalSlots = 32;
+    const directions = 4;
+
+    spriteSheet.onload = () => {
+      for (let i = 0; i < totalSlots; i++) {
+        const optionDiv = document.createElement("div");
+        optionDiv.classList.add("dropdown-option");
+        optionDiv.dataset.slot = i;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext("2d");
+
+        const frameX = 0; // first frame
+        const frameY = i * directions + 1; // down-walk row
+        ctx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
+
+        const label = document.createElement("span");
+        label.textContent = `Character ${i}`;
+
+        optionDiv.appendChild(canvas);
+        optionDiv.appendChild(label);
+        spriteOptions.appendChild(optionDiv);
+
+        optionDiv.addEventListener("click", () => {
+          spriteSelected.textContent = `Character ${i}`;
+          spriteSelected.dataset.slot = i;
+          spriteOptions.style.display = "none";
+
+          // Update preview canvas
+          selectedCtx.clearRect(0, 0, 32, 32);
+          selectedCtx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
+        });
+      }
+    };
+
+    // Toggle dropdown
+    spriteSelected.addEventListener("click", () => {
+      spriteOptions.style.display = spriteOptions.style.display === "block" ? "none" : "block";
+    });
+
+    let player;
+
+    startBtn.addEventListener("click", () => {
+      const slot = parseInt(spriteSelected.dataset.slot || 0);
+      player = new Player("warrior", slot);
+      characterSelect.style.display = "none";
+      window.player = player;
+    });
+
+    characterSelect.style.display = "block";
+  </script>
+
   <script type="module" src="js/game.js"></script>
 
-  <!-- Touch + Resize handling -->
   <script>
     const canvas = document.getElementById("gameCanvas");
-    const keys = window.keys || {}; // use your existing key system
+    const keys = window.keys || {};
 
     function setKey(id, state) {
       if (id === "up" || id === "down" || id === "left" || id === "right") {
         keys[id] = state;
       }
-      if (id === "attack") {
-        keys[" "] = state; // map to spacebar attack
-      }
-      if (id === "special") {
-        keys["k"] = state; // map to 'K' special
-      }
+      if (id === "attack") keys[" "] = state;
+      if (id === "special") keys["k"] = state;
     }
 
-    // Touch buttons
     document.querySelectorAll("#mobile-controls button.control, #mobile-actions button.control")
       .forEach(btn => {
         btn.addEventListener("touchstart", e => {
@@ -190,22 +355,17 @@
         });
       });
 
-    // Auto-resize canvas while keeping aspect ratio
     function resizeCanvas() {
       const aspect = 1024 / 768;
       let w = window.innerWidth;
       let h = window.innerHeight;
-
       if (w / h > aspect) {
-        // too wide, limit by height
         h = window.innerHeight;
         w = h * aspect;
       } else {
-        // too tall, limit by width
         w = window.innerWidth;
         h = w / aspect;
       }
-
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
     }
