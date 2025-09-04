@@ -223,6 +223,7 @@
     <div id="xp">Lv 1 | XP: 0 / 10</div>
     <div id="gold">Gold: 0</div>
     <div id="stats">DMG 5 | ROF 1/s | SPD 1</div>
+	<button id="fullscreenBtn">Go Fullscreen</button>
   </div>
 
   <!-- Upgrade UI -->
@@ -407,6 +408,22 @@
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("orientationchange", resizeCanvas);
     resizeCanvas();
+	
+	const btn = document.getElementById("fullscreenBtn");
+
+btn.addEventListener("click", async () => {
+  const canvas = document.getElementById("gameCanvas");
+
+  // Request fullscreen
+  if (canvas.requestFullscreen) await canvas.requestFullscreen();
+  else if (canvas.webkitRequestFullscreen) await canvas.webkitRequestFullscreen();
+
+  // Optional: lock pointer for mouse/gamepad
+  if (canvas.requestPointerLock) canvas.requestPointerLock();
+
+  console.log("Fullscreen & pointer lock active!");
+});
+
   </script>
 </body>
 </html>
