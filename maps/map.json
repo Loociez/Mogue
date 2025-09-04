@@ -469,7 +469,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 599,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -1454,7 +1454,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 598,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -1564,7 +1564,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 586,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -1962,7 +1962,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 598,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -2327,7 +2327,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 586,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -3567,7 +3567,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 586,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -3864,7 +3864,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 598,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -5005,7 +5005,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 598,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -5027,7 +5027,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 586,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -6553,7 +6553,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 599,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -6718,7 +6718,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 599,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -7184,7 +7184,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 599,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -7426,7 +7426,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 586,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -9940,14 +9940,14 @@
         null,
         null,
         {
-          "tileId": 315,
-          "tileset": 2,
+          "tileId": 788,
+          "tileset": 0,
           "attributes": {
-            "walkable": false,
+            "walkable": true,
             "damage": false,
             "trigger": false,
             "healing": false,
-            "blocker": false
+            "blocker": true
           }
         },
         null,
@@ -10342,7 +10342,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.35
+              "_last": 0.3650057785219403
             }
           }
         },
@@ -10401,7 +10401,7 @@
               "color": "#a53f1d",
               "brightness": 0.5,
               "flicker": false,
-              "_last": 0.4530416902591107
+              "_last": 0.452647290315298
             }
           }
         },
@@ -10649,7 +10649,7 @@
               "color": "#a53f1d",
               "brightness": 0.5,
               "flicker": false,
-              "_last": 0.49677557854500287
+              "_last": 0.47439851284250695
             }
           }
         },
@@ -11598,7 +11598,7 @@
               "color": "#e1ff4d",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.38572466321137605
+              "_last": 0.43300078362850575
             }
           }
         },
@@ -11658,8 +11658,28 @@
             "blocker": true
           }
         },
-        null,
-        null
+        {
+          "tileId": 822,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 684,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         {
@@ -11780,7 +11800,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.44645332178279556
+              "_last": 0.4745270902239133
             }
           }
         },
@@ -11833,7 +11853,17 @@
             "blocker": true
           }
         },
-        null,
+        {
+          "tileId": 684,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         {
           "tileId": 415,
           "tileset": 2,
@@ -11845,10 +11875,9 @@
             "blocker": true
           }
         },
-        null,
         {
-          "tileId": 462,
-          "tileset": 2,
+          "tileId": 684,
+          "tileset": 0,
           "attributes": {
             "walkable": false,
             "damage": false,
@@ -11857,9 +11886,50 @@
             "blocker": true
           }
         },
-        null,
-        null,
-        null
+        {
+          "tileId": 651,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 653,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 652,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 692,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         {
@@ -12017,7 +12087,17 @@
             "blocker": true
           }
         },
-        null,
+        {
+          "tileId": 692,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         {
           "tileId": 423,
           "tileset": 2,
@@ -12029,10 +12109,9 @@
             "blocker": true
           }
         },
-        null,
         {
-          "tileId": 470,
-          "tileset": 2,
+          "tileId": 692,
+          "tileset": 0,
           "attributes": {
             "walkable": false,
             "damage": false,
@@ -12041,9 +12120,50 @@
             "blocker": true
           }
         },
-        null,
-        null,
-        null
+        {
+          "tileId": 658,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 660,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 660,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 701,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ]
     ],
     "objectAnim": [
@@ -12600,7 +12720,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.4602231946858373
+              "_last": 0.4531467682458214
             }
           }
         },
@@ -12632,7 +12752,7 @@
               "color": "#a53f1d",
               "brightness": 0.5,
               "flicker": false,
-              "_last": 0.4658286707613699
+              "_last": 0.4899617278824584
             }
           }
         },
@@ -13170,7 +13290,7 @@
               "color": "#e1ff4d",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.4026398231083828
+              "_last": 0.4374769176007849
             }
           }
         },
@@ -13248,7 +13368,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.3736736458696989
+              "_last": 0.4248931994994552
             }
           }
         },
