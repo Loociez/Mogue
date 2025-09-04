@@ -2,11 +2,12 @@ export const TILE_SIZE = 32;
 
 // --- Load all tilesets ---
 const tilesetImages = [];
-for (let i = 0; i <= 5; i++) {
+for (let i = 0; i <= 10; i++) {  // <-- change 5 → 10
   const img = new Image();
   img.src = `assets/tileset${i === 0 ? "" : i}.png`;
   tilesetImages.push(img);
 }
+
 
 // Attributes
 export const ATTRIBUTE_KEYS = ["walkable", "damage", "trigger", "healing", "blocker"];
