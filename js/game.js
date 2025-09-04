@@ -158,7 +158,7 @@ function showCharacterSelection() {
 
 // ==== Player Selection / Start ====
 function selectCharacter(type) {
-  const [px, py] = findValidSpawn(1, 1);
+  const [px, py] = findValidSpawn(11, 10);
   player = new Player(type, selectedSpriteSlot);
   player.reset(px, py);
 
