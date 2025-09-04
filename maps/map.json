@@ -9854,17 +9854,6 @@
           }
         },
         null,
-        {
-          "tileId": 46,
-          "tileset": 0,
-          "attributes": {
-            "walkable": false,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": false
-          }
-        },
         null,
         null,
         null,
@@ -9875,17 +9864,8 @@
         null,
         null,
         null,
-        {
-          "tileId": 46,
-          "tileset": 0,
-          "attributes": {
-            "walkable": false,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": false
-          }
-        },
+        null,
+        null,
         null,
         null,
         {
@@ -10362,7 +10342,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.3793781610321362
+              "_last": 0.35
             }
           }
         },
@@ -10421,7 +10401,7 @@
               "color": "#a53f1d",
               "brightness": 0.5,
               "flicker": false,
-              "_last": 0.48635089395398884
+              "_last": 0.4530416902591107
             }
           }
         },
@@ -10656,7 +10636,23 @@
         null,
         null,
         null,
-        null,
+        {
+          "tileId": 76,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": true,
+            "trigger": false,
+            "healing": false,
+            "blocker": true,
+            "light": {
+              "color": "#a53f1d",
+              "brightness": 0.5,
+              "flicker": false,
+              "_last": 0.49677557854500287
+            }
+          }
+        },
         null
       ],
       [
@@ -11259,17 +11255,7 @@
         null,
         null,
         null,
-        {
-          "tileId": 76,
-          "tileset": 0,
-          "attributes": {
-            "walkable": false,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": true
-          }
-        },
+        null,
         null,
         null,
         {
@@ -11612,7 +11598,7 @@
               "color": "#e1ff4d",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.38777928264124795
+              "_last": 0.38572466321137605
             }
           }
         },
@@ -11794,7 +11780,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.40989866386875895
+              "_last": 0.44645332178279556
             }
           }
         },
@@ -12614,7 +12600,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.47279463102621905
+              "_last": 0.4602231946858373
             }
           }
         },
@@ -12646,7 +12632,7 @@
               "color": "#a53f1d",
               "brightness": 0.5,
               "flicker": false,
-              "_last": 0.5
+              "_last": 0.4658286707613699
             }
           }
         },
@@ -12743,20 +12729,7 @@
         null,
         null,
         null,
-        {
-          "tileId": [
-            652,
-            652
-          ],
-          "tileset": 0,
-          "attributes": {
-            "walkable": false,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": true
-          }
-        },
+        null,
         null
       ],
       [
@@ -12816,20 +12789,7 @@
         null,
         null,
         null,
-        {
-          "tileId": [
-            660,
-            660
-          ],
-          "tileset": 0,
-          "attributes": {
-            "walkable": false,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": true
-          }
-        },
+        null,
         null
       ],
       [
@@ -13210,7 +13170,7 @@
               "color": "#e1ff4d",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.4712747224788315
+              "_last": 0.4026398231083828
             }
           }
         },
@@ -13288,7 +13248,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.40947641711532334
+              "_last": 0.3736736458696989
             }
           }
         },
