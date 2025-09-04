@@ -357,6 +357,8 @@ function update() {
       gold: player.gold,
       time: Math.floor(frameCount / 60),
     };
+	// Show the HTML overlay
+  document.getElementById("deathOverlay").style.display = "block";
   }
 
   // ==== CAMERA UPDATE ====
@@ -496,16 +498,7 @@ function updateHUD() {
   hudStats.textContent = `DMG ${player.damage} | ROF ${(60/player.fireCooldownMax).toFixed(1)}/s | SPD ${player.speed.toFixed(1)}`;
 }
 
-function drawGameOverScreen() {
-  ctx.fillStyle = "rgba(0,0,0,0.7)";
-  ctx.fillRect(0,0,gameWidth,gameHeight);
-  ctx.fillStyle="#fff";
-  ctx.font="32px sans-serif";
-  ctx.textAlign="center";
-  ctx.fillText("Game Over", gameWidth/2, gameHeight/2-40);
-  ctx.font="20px sans-serif";
-  ctx.fillText("Click to Restart", gameWidth/2, gameHeight/2+20);
-}
+
 
 // ==== Helpers ====
 function circleRectOverlap(cx, cy, r, rx, ry, rw, rh) {
