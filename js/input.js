@@ -1,11 +1,14 @@
 export function setupInput(player) {
   const keys = {};
 
+  // --- Keyboard events ---
   window.addEventListener("keydown", e => {
     const k = e.key.toLowerCase();
     keys[k] = true;
 
-    if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k)) e.preventDefault();
+    if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k)) {
+      e.preventDefault();
+    }
   });
 
   window.addEventListener("keyup", e => {
@@ -15,13 +18,19 @@ export function setupInput(player) {
   player.inputKeys = keys;
   player.attackPressed = false;
 
-  // --- gamepad polling ---
+  // --- Gamepad polling ---
   function pollGamepad() {
     const gp = navigator.getGamepads()[0];
     if (gp) {
-      // A button is index 0 (instead of RT which is 7)
-      player.attackPressed = gp.buttons[0].pressed;
-      // You can also map dpad/axes here if needed
+      // Map A button (index 0) to attack
+      if (gp.buttons[0].pressed) {
+        player.attackPressed = true;
+      }
+
+      // Example: map B (index 1) to pause if you want
+      // if (gp.buttons[1].pressed) {
+      //   togglePause();
+      // }
     }
     requestAnimationFrame(pollGamepad);
   }
