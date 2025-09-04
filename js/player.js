@@ -51,6 +51,10 @@ export class Player {
     this.inputKeys = {};
     this.attackPressed = false;
 
+    // === Crit system ===
+    this.critChance = 0.2;       
+    this.critMultiplier = 2.0; 
+
     // Keyboard events
     window.addEventListener("keydown", e => { this.inputKeys[e.key.toLowerCase()] = true; });
     window.addEventListener("keyup", e => { this.inputKeys[e.key.toLowerCase()] = false; });
@@ -97,6 +101,7 @@ export class Player {
         this.projectileType = "normal";
         this.projectileSpeed = 6;
         this.projectileLife = 60;
+        this.maxDistance = 250; // <--- max distance for player projectiles
         this.pierce = 1;
         this.fireCooldownMax = 20;
         break;
@@ -107,6 +112,7 @@ export class Player {
         this.projectileType = "spread";
         this.projectileSpeed = 6;
         this.projectileLife = 60;
+        this.maxDistance = 250;
         this.pierce = 1;
         this.fireCooldownMax = 20;
         break;
@@ -117,6 +123,7 @@ export class Player {
         this.projectileType = "homing";
         this.projectileSpeed = 5;
         this.projectileLife = 80;
+        this.maxDistance = 250;
         this.pierce = 1;
         this.fireCooldownMax = 20;
         break;
@@ -187,12 +194,49 @@ export class Player {
       this.fireCooldown = this.fireCooldownMax;
 
       const spawnProjectile = (vx, vy, type = this.projectileType) => {
-        projectiles.push(new Projectile(this.px + TILE_SIZE / 2, this.py + TILE_SIZE / 2, vx, vy, this.damage, this.projectileLife, this.pierce, type));
+        let dmg = this.damage;
+        let isCrit = false;
+        if (Math.random() < this.critChance) {
+            dmg = Math.floor(dmg * this.critMultiplier);
+            isCrit = true;
+        }
+
+        const proj = new Projectile(
+            this.px + TILE_SIZE / 2,
+            this.py + TILE_SIZE / 2,
+            vx,
+            vy,
+            dmg,
+            this.projectileLife,
+            this.pierce,
+            type
+        );
+
+        // --- Add maxDistance tracking ---
+        proj.startX = this.px + TILE_SIZE / 2;
+        proj.startY = this.py + TILE_SIZE / 2;
+        proj.maxDistance = this.maxDistance;
+
+        // Wrap original update for maxDistance
+        const originalUpdate = proj.update.bind(proj);
+        proj.update = function(enemies = [], canvas = { width: 800, height: 600 }) {
+          originalUpdate(enemies, canvas);
+          const dx = this.x - this.startX;
+          const dy = this.y - this.startY;
+          if(Math.hypot(dx, dy) >= this.maxDistance) this.life = 0;
+        }
+
+        if (isCrit) {
+            proj.color = "#ffff00";     
+            proj.isCrit = true;         
+            proj.critText = `CRIT! ${dmg}`;
+        }
+
+        projectiles.push(proj);
       };
 
       switch (this.projectileType) {
         case "spread":
-          // get base angle from direction
           let baseAngle = 0;
           switch (this.dir) {
             case "up": baseAngle = -Math.PI / 2; break;
@@ -200,19 +244,16 @@ export class Player {
             case "left": baseAngle = Math.PI; break;
             case "right": baseAngle = 0; break;
           }
-
-          const spread = Math.PI / 12; // 15 degrees
-          [-1, 0, 1].forEach(offset => {
+          const spread = Math.PI / 12;
+          [-1,0,1].forEach(offset => {
             const angle = baseAngle + offset * spread;
-            const vx = Math.cos(angle) * this.projectileSpeed;
-            const vy = Math.sin(angle) * this.projectileSpeed;
-            spawnProjectile(vx, vy, "spread");
+            spawnProjectile(Math.cos(angle)*this.projectileSpeed, Math.sin(angle)*this.projectileSpeed, "spread");
           });
           break;
 
         default:
-          let vx = 0, vy = 0;
-          switch (this.dir) { case "up": vy = -this.projectileSpeed; break; case "down": vy = this.projectileSpeed; break; case "left": vx = -this.projectileSpeed; break; case "right": vx = this.projectileSpeed; break; }
+          let vx=0, vy=0;
+          switch (this.dir) { case "up": vy=-this.projectileSpeed; break; case "down": vy=this.projectileSpeed; break; case "left": vx=-this.projectileSpeed; break; case "right": vx=this.projectileSpeed; break; }
           spawnProjectile(vx, vy, this.projectileType);
       }
 
@@ -228,82 +269,71 @@ export class Player {
     if (this.py < targetPy) this.py = Math.min(this.py + this.speed, targetPy);
     if (this.py > targetPy) this.py = Math.max(this.py - this.speed, targetPy);
 
-    // Animate
     this.updateAnimation(targetPx, targetPy);
   }
 
   updateAnimation(targetPx, targetPy) {
     const moving = this.px !== targetPx || this.py !== targetPy;
-
-    // Each character has 12 frames: 3 frames per action per direction
-    // Direction offsets: up=0, down=3, left=6, right=9
-    const dirOffsetMap = { "up": 0, "down": 3, "left": 6, "right": 9 };
+    const dirOffsetMap = { "up":0,"down":3,"left":6,"right":9 };
     const dirOffset = dirOffsetMap[this.dir] || 0;
 
-    let startFrame = 0;
-    let frameCount = 3;
+    let startFrame = 0, frameCount = 3;
 
-    if (this.attacking) {
-      startFrame = dirOffset + 2;  // attack frames
-      frameCount = 1;
-    } else if (moving) {
-      startFrame = dirOffset + 1;  // walk frames
-      frameCount = 1;
-    } else {
-      startFrame = dirOffset + 0;  // idle frames
-      frameCount = 1;
-    }
+    if(this.attacking){ startFrame=dirOffset+2; frameCount=1; }
+    else if(moving){ startFrame=dirOffset+1; frameCount=1; }
+    else{ startFrame=dirOffset+0; frameCount=1; }
 
     this.frameTicker++;
-    if (this.frameTicker >= this.frameSpeed) {
-      this.frame = startFrame + ((this.frame - startFrame + 1) % frameCount);
-      this.frameTicker = 0;
+    if(this.frameTicker>=this.frameSpeed){
+      this.frame=startFrame+((this.frame-startFrame+1)%frameCount);
+      this.frameTicker=0;
     }
 
-    this.currentAnim = this.spriteSlot;
+    this.currentAnim=this.spriteSlot;
   }
 
-  draw(ctx) {
+ draw(ctx) {
     if (!this.spriteSheet.complete) {
-      ctx.fillStyle = "blue";
-      ctx.fillRect(this.px, this.py, TILE_SIZE, TILE_SIZE);
-      return;
+        ctx.fillStyle = "blue";
+        ctx.fillRect(this.px, this.py, TILE_SIZE, TILE_SIZE);
+        return;
     }
 
-    const sx = this.frame * TILE_SIZE;
-    const sy = this.currentAnim * TILE_SIZE;
+    const totalFrameIndex = this.spriteSlot * 12 + this.frame;
+    const tilesPerRow = this.spriteSheet.naturalWidth / TILE_SIZE;
+    const sx = (totalFrameIndex % tilesPerRow) * TILE_SIZE;
+    const sy = Math.floor(totalFrameIndex / tilesPerRow) * TILE_SIZE;
 
     ctx.drawImage(this.spriteSheet, sx, sy, TILE_SIZE, TILE_SIZE, this.px, this.py, TILE_SIZE, TILE_SIZE);
 
-    // Health bar
     ctx.fillStyle = "red";
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE, 4);
     ctx.fillStyle = "green";
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE * (this.hp / this.maxHp), 4);
-  }
+}
 
-  gainXp(amount, levelUpCallback) {
-    this.xp += amount;
-    while (this.xp >= this.xpToNext) {
-      this.xp -= this.xpToNext;
+  gainXp(amount, levelUpCallback){
+    this.xp+=amount;
+    while(this.xp>=this.xpToNext){
+      this.xp-=this.xpToNext;
       this.levelUp();
-      if (levelUpCallback) levelUpCallback();
+      if(levelUpCallback) levelUpCallback();
     }
   }
 
-  levelUp() {
+  levelUp(){
     this.level++;
-    this.maxHp += 10;
-    this.hp = this.maxHp;
-    this.damage += 2;
-    this.speed += 0.2;
-    this.xpToNext = Math.floor(this.xpToNext * 1.25);
+    this.maxHp+=10;
+    this.hp=this.maxHp;
+    this.damage+=2;
+    this.speed+=0.2;
+    this.xpToNext=Math.floor(this.xpToNext*1.25);
   }
 
-  takeDamage(amount) {
-    if (this.contactIFrames > 0) return;
-    this.hp -= amount;
-    this.contactIFrames = 30;
-    if (this.hp < 0) this.hp = 0;
+  takeDamage(amount){
+    if(this.contactIFrames>0) return;
+    this.hp-=amount;
+    this.contactIFrames=30;
+    if(this.hp<0) this.hp=0;
   }
 }

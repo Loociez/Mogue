@@ -183,37 +183,44 @@ export class Enemy {
             });
             break;
 
-          case "rain":
-            // generate telegraphs if empty
-            if (this.rainTelegraph.length === 0) {
-              for (let i = 0; i < 5; i++) {
-                const offsetX = (Math.random() - 0.5) * TILE_SIZE * 3;
-                const x = player.px + offsetX;
-                const y = player.py - TILE_SIZE * (i+1);
-                this.rainTelegraph.push({ x, y, countdown: 60 });
-              }
-            }
+         case "rain":
+  // Generate telegraphs if empty
+  if (this.rainTelegraph.length === 0) {
+    for (let i = 0; i < 5; i++) {
+      const offsetX = (Math.random() - 0.5) * TILE_SIZE * 3;
+      const x = player.px + offsetX;
+      const y = player.py - TILE_SIZE * (i + 1);
+      this.rainTelegraph.push({ x, y, countdown: 60, active: false });
+    }
+  }
 
-            // countdown and spawn projectiles
-            for (let i = this.rainTelegraph.length - 1; i >= 0; i--) {
-              const t = this.rainTelegraph[i];
-              t.countdown--;
-              if (t.countdown <= 0) {
-                projectiles.push({
-                  x: t.x,
-                  y: t.y,
-                  r: 5,
-                  vx: 0,
-                  vy: 4,
-                  damage: this.touchDamage * 0.8,
-                  life: 120,
-                  pierce: 1,
-                  type: "rain"
-                });
-                this.rainTelegraph.splice(i, 1);
-              }
-            }
-            break;
+  // Process telegraphs
+  for (let i = this.rainTelegraph.length - 1; i >= 0; i--) {
+    const t = this.rainTelegraph[i];
+    t.countdown--;
+    if (!t.active && t.countdown <= 0) {
+      t.active = true;  // mark it active for projectile spawn
+    }
+
+    if (t.active) {
+      // spawn falling projectile
+      projectiles.push({
+        x: t.x,
+        y: t.y,
+        r: 5,
+        vx: 0,
+        vy: 4,
+        damage: this.touchDamage * 0.8,
+        life: 120,
+        pierce: 1,
+        type: "rain"
+      });
+      // remove telegraph now that projectile spawned
+      this.rainTelegraph.splice(i, 1);
+    }
+  }
+  break;
+
 
           case "tracking":
             if (!this.telegraph) {
