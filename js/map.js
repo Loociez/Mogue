@@ -17,51 +17,57 @@ export const map = {
   width: 0,
   height: 0,
   layers: {
-    ground: [],
-    groundAnim: [],
-    objects: [],
-    objectAnim: [] // animated objects layer
-  },
+  ground: [],
+  groundAnim: [],
+  objects: [],
+  objectAnim: [],
+  object2: [],       
+  object2Anim: []    
+},
+
   animFrame: 0,
   animTicker: 0,
   animSpeed: 60, // ticks per switch
 
   async load(path) {
-    const res = await fetch(path);
-    if (!res.ok) throw new Error(`Failed to load map: ${path}`);
-    const json = await res.json();
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`Failed to load map: ${path}`);
+  const json = await res.json();
 
-    this.width = json.width;
-    this.height = json.height;
-    this.layers.ground = json.layers.ground || [];
-    this.layers.groundAnim = json.layers.groundAnim || [];
-    this.layers.objects = json.layers.objects || [];
-    this.layers.objectAnim = json.layers.objectAnim || [];
+  this.width = json.width;
+  this.height = json.height;
+  this.layers.ground = json.layers.ground || [];
+  this.layers.groundAnim = json.layers.groundAnim || [];
+  this.layers.objects = json.layers.objects || [];
+  this.layers.objectAnim = json.layers.objectAnim || [];
+  this.layers.object2 = json.layers.object2 || [];       // NEW
+  this.layers.object2Anim = json.layers.object2Anim || []; // NEW
 
-    // Ensure arrays have full rows/cols and initialize attributes
-    ["ground", "groundAnim", "objects", "objectAnim"].forEach(layerName => {
-      if (!this.layers[layerName]) this.layers[layerName] = [];
-      for (let y = 0; y < this.height; y++) {
-        if (!this.layers[layerName][y]) this.layers[layerName][y] = [];
-        for (let x = 0; x < this.width; x++) {
-          if (typeof this.layers[layerName][y][x] === "undefined") {
-            this.layers[layerName][y][x] = null;
-            continue;
-          }
-          const tile = this.layers[layerName][y][x];
-          if (!tile) continue;
-          if (!tile.attributes) tile.attributes = {};
-          const attr = tile.attributes;
-          if (attr.walkable === undefined) attr.walkable = true;
-          if (attr.blocker === undefined) attr.blocker = false;
-          if (attr.damage === undefined) attr.damage = false;
-          if (attr.healing === undefined) attr.healing = false;
-          if (attr.trigger === undefined) attr.trigger = false;
-          if (tile.tileset === undefined) tile.tileset = 0;
+  // Ensure arrays have full rows/cols and initialize attributes
+  ["ground","groundAnim","objects","objectAnim","object2","object2Anim"].forEach(layerName => {
+    if (!this.layers[layerName]) this.layers[layerName] = [];
+    for (let y = 0; y < this.height; y++) {
+      if (!this.layers[layerName][y]) this.layers[layerName][y] = [];
+      for (let x = 0; x < this.width; x++) {
+        if (typeof this.layers[layerName][y][x] === "undefined") {
+          this.layers[layerName][y][x] = null;
+          continue;
         }
+        const tile = this.layers[layerName][y][x];
+        if (!tile) continue;
+        if (!tile.attributes) tile.attributes = {};
+        const attr = tile.attributes;
+        if (attr.walkable === undefined) attr.walkable = true;
+        if (attr.blocker === undefined) attr.blocker = false;
+        if (attr.damage === undefined) attr.damage = false;
+        if (attr.healing === undefined) attr.healing = false;
+        if (attr.trigger === undefined) attr.trigger = false;
+        if (tile.tileset === undefined) tile.tileset = 0;
       }
-    });
-  },
+    }
+  });
+},
+
 
   isWalkable(x, y) {
     if (x < 0 || y < 0 || x >= this.width || y >= this.height) return false;
@@ -101,52 +107,51 @@ export const map = {
   draw(ctx) {
   if (!this.layers.ground) return;
 
-  // --- First pass: draw ground + groundAnim ---
+  const renderOrder = ["ground","groundAnim","objects","objectAnim","object2","object2Anim"]; // object2 layers on top
+
   for (let y = 0; y < this.height; y++) {
     for (let x = 0; x < this.width; x++) {
-      for (const layerName of ["ground", "groundAnim"]) {
+      let tileToDraw = null;
+
+      // Determine which tile to draw for objects/animations
+      const baseObj = this.layers.objects[y]?.[x];
+      const animObj = this.layers.objectAnim[y]?.[x];
+      const baseObj2 = this.layers.object2[y]?.[x];         // NEW
+      const animObj2 = this.layers.object2Anim[y]?.[x];     // NEW
+
+      // Always draw object2 layers on top if present
+      if (baseObj2 && animObj2) tileToDraw = (this.animFrame % 2 === 0) ? baseObj2 : animObj2;
+      else if (animObj2) tileToDraw = animObj2;
+      else if (baseObj2) tileToDraw = baseObj2;
+      else if (baseObj && animObj) tileToDraw = (this.animFrame % 2 === 0) ? baseObj : animObj;
+      else if (animObj) tileToDraw = animObj;
+      else if (baseObj) tileToDraw = baseObj;
+
+      // Draw ground and groundAnim first
+      for (const layerName of ["ground","groundAnim"]) {
         let tile = this.layers[layerName][y]?.[x];
         if (!tile) continue;
-
-        // Handle animation arrays
         if (Array.isArray(tile.tileId)) {
           const idx = this.animFrame % tile.tileId.length;
           tile = { ...tile, tileId: tile.tileId[idx] };
         }
-
         this.drawTile(ctx, tile, x, y);
       }
 
-    // --- Special handling: objects vs objectAnim toggle ---
-const baseObj = this.layers.objects[y]?.[x];
-const animObj = this.layers.objectAnim[y]?.[x];
-
-let tileToDraw = null;
-if (baseObj && animObj) {
-  // Both exist → toggle between them
-  tileToDraw = (this.animFrame % 2 === 0) ? baseObj : animObj;
-} else if (animObj) {
-  // Only anim exists → always show anim
-  tileToDraw = animObj;
-} else if (baseObj) {
-  // Only base exists → always show base
-  tileToDraw = baseObj;
-}
-
-if (tileToDraw) {
-  if (Array.isArray(tileToDraw.tileId)) {
-    const idx = this.animFrame % tileToDraw.tileId.length;
-    tileToDraw = { ...tileToDraw, tileId: tileToDraw.tileId[idx] };
-  }
-  this.drawTile(ctx, tileToDraw, x, y);
-}
+      if (tileToDraw) {
+        if (Array.isArray(tileToDraw.tileId)) {
+          const idx = this.animFrame % tileToDraw.tileId.length;
+          tileToDraw = { ...tileToDraw, tileId: tileToDraw.tileId[idx] };
+        }
+        this.drawTile(ctx, tileToDraw, x, y);
+      }
     }
   }
 
-  // --- Second pass: draw lights on top of everything ---
+  // --- Draw lights on all layers including object2 ---
   for (let y = 0; y < this.height; y++) {
     for (let x = 0; x < this.width; x++) {
-      for (const layerName of ["ground", "groundAnim", "objects", "objectAnim"]) {
+      for (const layerName of ["ground","groundAnim","objects","objectAnim","object2","object2Anim"]) {
         const tile = this.layers[layerName][y]?.[x];
         if (!tile?.attributes?.light) continue;
         this.drawLight(ctx, tile, x, y);
@@ -154,6 +159,7 @@ if (tileToDraw) {
     }
   }
 },
+
 
 
 // --- helper functions ---

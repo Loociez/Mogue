@@ -33,8 +33,11 @@ let mapData = {
   ground: Array.from({ length: height }, () => Array(width).fill(null)),
   groundAnim: Array.from({ length: height }, () => Array(width).fill(null)),
   objects: Array.from({ length: height }, () => Array(width).fill(null)),
-  objectAnim: Array.from({ length: height }, () => Array(width).fill(null))
+  objectAnim: Array.from({ length: height }, () => Array(width).fill(null)),
+  object2: Array.from({ length: height }, () => Array(width).fill(null)),       
+  object2Anim: Array.from({ length: height }, () => Array(width).fill(null))    
 };
+
 
 // --- Current selections ---
 let currentLayer = "ground";
@@ -190,11 +193,13 @@ controlsDiv.appendChild(document.createElement("br"));
 // Add layer selector
 controlsDiv.appendChild(document.createTextNode("Layer: "));
 const layerSelect = document.createElement("select");
-["ground","groundAnim","objects","objectAnim"].forEach(layer=>{
+["ground","groundAnim","objects","objectAnim","object2","object2Anim"].forEach(layer=>{
   const opt = document.createElement("option");
-  opt.value = layer; opt.text = layer;
+  opt.value = layer; 
+  opt.text = layer;
   layerSelect.appendChild(opt);
 });
+
 layerSelect.onchange = () => currentLayer = layerSelect.value;
 controlsDiv.appendChild(layerSelect);
 controlsDiv.appendChild(document.createElement("br"));
@@ -278,19 +283,46 @@ loadInput.accept = ".json";
 loadInput.onchange = (e) => {
   const file = e.target.files[0];
   if (!file) return;
+
   const reader = new FileReader();
   reader.onload = evt => {
     const json = JSON.parse(evt.target.result);
-    mapData.ground = json.layers.ground || mapData.ground;
-    mapData.groundAnim = json.layers.groundAnim || mapData.groundAnim;
-    mapData.objects = json.layers.objects || mapData.objects;
-    mapData.objectAnim = json.layers.objectAnim || mapData.objectAnim;
+
+    // Resize canvas to match map dimensions
+    canvas.width = json.width * TILE_SIZE;
+    canvas.height = json.height * TILE_SIZE;
+
+    // Update width/height variables
+    const mapWidth = json.width;
+    const mapHeight = json.height;
+
+    // Helper to ensure full array dimensions
+    function fillLayer(layer, defaultValue = null) {
+      const newLayer = [];
+      for (let y = 0; y < mapHeight; y++) {
+        newLayer[y] = [];
+        for (let x = 0; x < mapWidth; x++) {
+          newLayer[y][x] = layer?.[y]?.[x] ?? defaultValue;
+        }
+      }
+      return newLayer;
+    }
+
+    // Load layers with fallback for missing data
+    mapData.ground      = fillLayer(json.layers.ground);
+    mapData.groundAnim  = fillLayer(json.layers.groundAnim);
+    mapData.objects     = fillLayer(json.layers.objects);
+    mapData.objectAnim  = fillLayer(json.layers.objectAnim);
+    mapData.object2     = fillLayer(json.layers.object2);
+    mapData.object2Anim = fillLayer(json.layers.object2Anim);
+
     draw();
   };
   reader.readAsText(file);
 };
 controlsDiv.appendChild(loadInput);
 controlsDiv.appendChild(document.createElement("br"));
+
 
 // --- Paint Tile ---
 function paintTile(x, y) {
@@ -310,7 +342,8 @@ function paintTile(x, y) {
 
       const tile = mapData[currentLayer][py][px];
 
-      if (currentLayer === "groundAnim" || currentLayer === "objectAnim") {
+      // Handle animation layers
+      if (currentLayer === "groundAnim" || currentLayer === "objectAnim" || currentLayer === "object2Anim") {
         if (!Array.isArray(tile.tileId)) tile.tileId = [tileId, tileId];
         tile.tileset = currentTilesetIndex;
       } else {
@@ -318,12 +351,19 @@ function paintTile(x, y) {
         tile.tileset = currentTilesetIndex;
       }
 
+      // Apply attributes
       tile.attributes = { ...currentAttributes };
-      if(tile.attributes.walkable===undefined) tile.attributes.walkable=true;
-      if((currentLayer==="objects" || currentLayer==="objectAnim") && tile.attributes.blocker===undefined) tile.attributes.blocker=false;
+      if (tile.attributes.walkable === undefined) tile.attributes.walkable = true;
+      if ((currentLayer === "objects" || currentLayer === "objectAnim" || currentLayer === "object2" || currentLayer === "object2Anim") &&
+          tile.attributes.blocker === undefined) tile.attributes.blocker = false;
 
-      if(currentAttributes.light){
-        tile.attributes.light = { color: lightSource.color, brightness: lightSource.brightness, flicker: lightSource.flicker, _last: lightSource.brightness };
+      if (currentAttributes.light) {
+        tile.attributes.light = {
+          color: lightSource.color,
+          brightness: lightSource.brightness,
+          flicker: lightSource.flicker,
+          _last: lightSource.brightness
+        };
       } else {
         delete tile.attributes.light;
       }
@@ -334,72 +374,93 @@ function paintTile(x, y) {
 // --- Canvas Drag Painting ---
 let painting = false;
 let erase = false;
-canvas.addEventListener("mousedown", e=>{
+canvas.addEventListener("mousedown", e => {
   painting = true;
   erase = (e.button === 2);
   handleCanvasPaint(e);
 });
-canvas.addEventListener("mousemove", e=>{ if(painting) handleCanvasPaint(e); });
-canvas.addEventListener("mouseup", e=>{ painting=false; });
-canvas.addEventListener("mouseleave", e=>{ painting=false; });
-canvas.addEventListener("contextmenu", e=> e.preventDefault());
+canvas.addEventListener("mousemove", e => { if (painting) handleCanvasPaint(e); });
+canvas.addEventListener("mouseup", e => { painting = false; });
+canvas.addEventListener("mouseleave", e => { painting = false; });
+canvas.addEventListener("contextmenu", e => e.preventDefault());
 
-function handleCanvasPaint(e){
+function handleCanvasPaint(e) {
   const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left)/TILE_SIZE);
-  const y = Math.floor((e.clientY - rect.top)/TILE_SIZE);
-  if(x<0||y<0||x>=width||y>=height) return;
+  const x = Math.floor((e.clientX - rect.left) / TILE_SIZE);
+  const y = Math.floor((e.clientY - rect.top) / TILE_SIZE);
+  if (x < 0 || y < 0 || x >= width || y >= height) return;
 
-  if(erase){
-    const rows = selectedTiles.length;
-    const cols = selectedTiles[0].length;
-    for(let ry=0; ry<rows; ry++){
-      for(let cx=0; cx<cols; cx++){
-        const px = x+cx;
-        const py = y+ry;
-        if(px>=width || py>=height) continue;
+  const rows = selectedTiles.length;
+  const cols = selectedTiles[0].length;
+
+  for (let ry = 0; ry < rows; ry++) {
+    for (let cx = 0; cx < cols; cx++) {
+      const px = x + cx;
+      const py = y + ry;
+      if (px >= width || py >= height) continue;
+
+      if (erase) {
         mapData[currentLayer][py][px] = null;
+      } else {
+        paintTile(px, py);
       }
     }
-  } else {
-    paintTile(x,y);
   }
+
   draw();
+}
+// --- Helper: convert hex color to rgba ---
+function hexToRGBA(hex, alpha = 1) {
+  // Remove leading #
+  hex = hex.replace(/^#/, '');
+
+  // Support shorthand like #fff
+  if (hex.length === 3) {
+    hex = hex.split('').map(c => c + c).join('');
+  }
+
+  const r = parseInt(hex.slice(0,2), 16);
+  const g = parseInt(hex.slice(2,4), 16);
+  const b = parseInt(hex.slice(4,6), 16);
+
+  return `rgba(${r},${g},${b},${alpha})`;
 }
 
 // --- Draw Map ---
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  for(let y=0;y<height;y++){
-    for(let x=0;x<width;x++){
-      ["ground","groundAnim","objects","objectAnim"].forEach(layerName=>{
+  const renderOrder = ["ground", "groundAnim", "objects", "objectAnim", "object2", "object2Anim"]; // object2 layers on top
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      renderOrder.forEach(layerName => {
         let tile = mapData[layerName][y][x];
-        if(tile){
-          if(Array.isArray(tile.tileId)) tile = { ...tile, tileId: tile.tileId[0] };
+        if (tile) {
+          if (Array.isArray(tile.tileId)) tile = { ...tile, tileId: tile.tileId[0] };
           const ts = tilesetImages[tile.tileset || 0];
           const tilesAcrossInImage = Math.floor(ts.width / TILE_SIZE);
           const sx = (tile.tileId % tilesAcrossInImage) * TILE_SIZE;
           const sy = Math.floor(tile.tileId / tilesAcrossInImage) * TILE_SIZE;
-          ctx.drawImage(ts,sx,sy,TILE_SIZE,TILE_SIZE,x*TILE_SIZE,y*TILE_SIZE,TILE_SIZE,TILE_SIZE);
+          ctx.drawImage(ts, sx, sy, TILE_SIZE, TILE_SIZE, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
           // Overlay attributes
-          if(tile.attributes){
-            if(tile.attributes.blocker) ctx.fillStyle="rgba(255,0,0,0.3)";
-            else if(tile.attributes.damage) ctx.fillStyle="rgba(255,165,0,0.3)";
-            else if(tile.attributes.healing) ctx.fillStyle="rgba(0,255,0,0.3)";
-            else if(tile.attributes.trigger) ctx.fillStyle="rgba(0,0,255,0.3)";
-            if(tile.attributes.blocker || tile.attributes.damage || tile.attributes.healing || tile.attributes.trigger){
-              ctx.fillRect(x*TILE_SIZE,y*TILE_SIZE,TILE_SIZE,TILE_SIZE);
+          if (tile.attributes) {
+            if (tile.attributes.blocker) ctx.fillStyle = "rgba(255,0,0,0.3)";
+            else if (tile.attributes.damage) ctx.fillStyle = "rgba(255,165,0,0.3)";
+            else if (tile.attributes.healing) ctx.fillStyle = "rgba(0,255,0,0.3)";
+            else if (tile.attributes.trigger) ctx.fillStyle = "rgba(0,0,255,0.3)";
+            if (tile.attributes.blocker || tile.attributes.damage || tile.attributes.healing || tile.attributes.trigger) {
+              ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             }
 
-            if(tile.attributes.light){
+            if (tile.attributes.light) {
               const light = tile.attributes.light;
-              if(light._last===undefined) light._last=light.brightness;
-              light._last += (Math.random()-0.5)*0.02;
-              light._last = Math.min(Math.max(light._last,0.7*light.brightness), 1.0*light.brightness);
+              if (light._last === undefined) light._last = light.brightness;
+              light._last += (Math.random() - 0.5) * 0.02;
+              light._last = Math.min(Math.max(light._last, 0.7 * light.brightness), 1.0 * light.brightness);
               ctx.fillStyle = hexToRGBA(light.color, light._last);
-              ctx.fillRect(x*TILE_SIZE,y*TILE_SIZE,TILE_SIZE,TILE_SIZE);
+              ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             }
           }
         }
@@ -408,16 +469,3 @@ function draw(){
   }
 }
 
-// --- Utility ---
-function hexToRGBA(hex, alpha){
-  const r = parseInt(hex.substring(1,3),16);
-  const g = parseInt(hex.substring(3,5),16);
-  const b = parseInt(hex.substring(5,7),16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-// Initial draw
-tilesetImages[0].onload = () => {
-  drawPalette();
-  draw();
-};
