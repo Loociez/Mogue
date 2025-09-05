@@ -60,7 +60,7 @@ export class Projectile {
       let closest = null;
       let minDist = Infinity;
       for (const e of enemies) {
-        if (e === this.owner) continue; // skip owner
+        if (e === this.owner) continue;
         const dist = Math.hypot(e.px + 16 - this.x, e.py + 16 - this.y);
         if (dist < minDist) {
           minDist = dist;
@@ -81,21 +81,14 @@ export class Projectile {
     this.y += this.vy;
     this.life--;
 
-    // Allow projectiles to start colliding with owner after a short time
-    if (this.ignoreOwnerFrames > 0) {
-      this.ignoreOwnerFrames--;
-    }
+    if (this.ignoreOwnerFrames > 0) this.ignoreOwnerFrames--;
 
-    // Distance check
     if (this.maxDistance !== null) {
       const dx = this.x - this.startX;
       const dy = this.y - this.startY;
-      if (Math.hypot(dx, dy) >= this.maxDistance) {
-        this.life = 0;
-      }
+      if (Math.hypot(dx, dy) >= this.maxDistance) this.life = 0;
     }
 
-    // Bouncing logic
     if (this.type === "bouncing") {
       if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
         this.vx *= -1;
@@ -107,7 +100,6 @@ export class Projectile {
       }
     }
 
-    // Crit text float + fade
     if (this.critText) {
       this.critYOffset -= 0.5;
       this.critAlpha -= 0.02;
@@ -119,37 +111,28 @@ export class Projectile {
       }
     }
 
-    // Safety: pierce cannot be negative
     if (this.pierce < 0) this.pierce = 0;
   }
 
   draw(ctx) {
-  // Boss and mini-boss projectiles are always orange
-  if (this.owner?.type === "boss" || this.owner?.isMiniBoss) {
-    ctx.fillStyle = "#ff6600";
+    if (this.owner?.type === "boss" || this.owner?.isMiniBoss) ctx.fillStyle = "#ff6600";
+    else if (this.color) ctx.fillStyle = this.color;
+    else {
+      const colors = {
+        normal: "#fff",
+        spread: "#ff0",
+        bouncing: "#0ff",
+        homing: "#f0f",
+        heavy: "#f33",
+        rain: "#00f"
+      };
+      ctx.fillStyle = colors[this.type] || "#fff";
+    }
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
   }
-  // Custom color override
-  else if (this.color) {
-    ctx.fillStyle = this.color;
-  } 
-  else {
-    const colors = {
-      normal: "#fff",
-      spread: "#ff0",
-      bouncing: "#0ff",
-      homing: "#f0f",
-      heavy: "#f33",
-      rain: "#00f" // mini-boss rain projectile
-    };
-    ctx.fillStyle = colors[this.type] || "#fff";
-  }
-
-  ctx.beginPath();
-  ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-
 
   isAlive() {
     if (this.life <= 0) return false;
@@ -158,10 +141,23 @@ export class Projectile {
     return true;
   }
 
-  // Safer damage check
   canDamage(target) {
-    // cannot damage owner (until ignoreOwnerFrames expires)
     if (target === this.owner && this.ignoreOwnerFrames > 0) return false;
     return this.pierce > 0;
+  }
+
+  dealDamage(target) {
+    if (!this.canDamage(target)) return;
+
+    if (typeof target.takeDamage === "function") {
+      target.takeDamage(this.damage);
+
+      // --- Life Leech ---
+      if (this.owner?.healFromDamage) {
+        this.owner.healFromDamage(this.damage);
+      }
+
+      this.pierce--;
+    }
   }
 }

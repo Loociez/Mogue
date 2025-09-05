@@ -53,8 +53,20 @@ let camera = {
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !pendingChoices) paused = !paused;
   if (!menuActive) keys[e.key] = true;
+
 });
-window.addEventListener("keyup", (e) => { if (!menuActive) keys[e.key] = false; });
+// DEV CHEAT: Give yourself gold in the console
+window.giveGold = (amount = 1000000) => {
+    if (player) {
+        player.gold += amount;
+        console.log(`Gave player ${amount} gold! Total: ${player.gold}`);
+        // Optional: update UI if needed
+        if (typeof updateGoldUI === "function") updateGoldUI();
+    } else {
+        console.warn("Player not defined yet.");
+    }
+};
+
 
 // ==== Spawning ====
 function spawnEnemy() {
@@ -242,6 +254,82 @@ function applyChoice(choice) {
   pendingChoices = null; 
   hideUpgradeMenu();
 }
+// ==== Shop State ====
+let shopActive = false;
+
+// ==== Shop Items Definition (9 Upgrades) ====
+const shopItems = [
+  { name: "1) XP Boost", cost: 70, action: () => player.gainXp(10, onLevelUp) },
+  { name: "2) Spread Projectile", cost: 100, action: () => player.unlockProjectile("spread") },
+  { name: "3) Homing Projectile", cost: 150, action: () => player.unlockProjectile("homing") },
+  { name: "4) Heavy Projectile", cost: 150, action: () => player.unlockProjectile("heavy") },
+
+  { name: "5) Speed Boost", cost: 12000, action: () => { player.speed += 1; } },
+  { name: "6) Exploding Projectiles*broken*", cost: 250, action: () => { player.projectileExplosion = true; } },
+  { name: "7) Life Leech", cost: 30000, action: () => { player.lifeLeech = 0.2; } }, // heals 20% of damage dealt
+  { name: "8) Critical Boost", cost: 18000, action: () => { 
+      player.critChance = Math.min(player.critChance + 0.1, 1); 
+      player.critMultiplier += 0.5; 
+    } 
+  },
+  { name: "9) Max Range Increase*broken*", cost: 150, action: () => { player.maxDistance += 100; } },
+];
+
+
+// ==== Shop Overlay Drawing ====
+function drawShop() {
+  if (!shopActive || !player) return;
+
+  // Background overlay
+  ctx.fillStyle = "rgba(192,173,229,6)";
+  ctx.fillRect(0, 0, gameWidth, gameHeight);
+
+  // Shop title
+  ctx.fillStyle = "#fff";
+  ctx.font = "28px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("Shop", gameWidth / 2, 80);
+
+  // List of items
+  ctx.font = "20px sans-serif";
+  shopItems.forEach((item, i) => {
+    const y = 140 + i * 40;
+    ctx.fillStyle = player.gold >= item.cost ? "#d6f266" : "#888";
+    ctx.fillText(`${item.name} - ${item.cost} Gold`, gameWidth / 2, y);
+  });
+
+  // Instructions
+  ctx.font = "16px sans-serif";
+  ctx.fillStyle = "#fff";
+  ctx.fillText("Press 1-9 to buy item, K to close", gameWidth / 2, gameHeight - 40);
+}
+
+// ==== Buy Items with Number Keys ====
+window.addEventListener("keydown", (e) => {
+  if (!shopActive || !player) return;
+
+  const index = parseInt(e.key) - 1;
+  if (index >= 0 && index < shopItems.length) {
+    const item = shopItems[index];
+    if (player.gold >= item.cost) {
+      player.gold -= item.cost;
+      item.action();
+      updateHUD();
+      shopActive = false; // Close shop after purchase
+      paused = false;
+    }
+  }
+});
+
+// ==== Open/Close Shop with K ====
+window.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === "k" && !menuActive) {
+    shopActive = !shopActive;
+    paused = shopActive;
+  }
+});
+
+
 
 // ==== Game Loop ====
 function gameLoop() {
@@ -323,31 +411,35 @@ for (let i = projectiles.length - 1; i >= 0; i--) {
 
   // === Player projectiles ===
   if (p.owner === player) {
-    for (let j = enemies.length - 1; j >= 0; j--) {
-      const e = enemies[j];
-      if (circleRectOverlap(p.x, p.y, p.radius, e.px, e.py, TILE_SIZE, TILE_SIZE)) {
-        let dmg = p.damage * 1.5;
-        const isCrit = Math.random() < player.critChance;
-        if (isCrit) dmg *= 2;
-        e.hp -= dmg;
+  for (let j = enemies.length - 1; j >= 0; j--) {
+    const e = enemies[j];
+    if (circleRectOverlap(p.x, p.y, p.radius, e.px, e.py, TILE_SIZE, TILE_SIZE)) {
+      let dmg = p.damage * 1.5;
+      const isCrit = Math.random() < player.critChance;
+      if (isCrit) dmg *= 2;
+      e.hp -= dmg;
 
-        damageNumbers.push({
-          x: e.px + TILE_SIZE / 2,
-          y: e.py,
-          value: Math.floor(dmg),
-          life: 30,
-          color: isCrit ? "#ff0" : "#fff",
-          font: isCrit ? "bold 18px sans-serif" : "16px sans-serif",
-          crit: isCrit
-        });
+      // --- Life Leech ---
+      player.healFromDamage(dmg);
 
-        e.flashTimer = 5;
+      damageNumbers.push({
+        x: e.px + TILE_SIZE / 2,
+        y: e.py,
+        value: Math.floor(dmg),
+        life: 30,
+        color: isCrit ? "#ff0" : "#fff",
+        font: isCrit ? "bold 18px sans-serif" : "16px sans-serif",
+        crit: isCrit
+      });
 
-        p.pierce--;
-        if (p.pierce <= 0) break;
-      }
+      e.flashTimer = 5;
+
+      p.pierce--;
+      if (p.pierce <= 0) break;
     }
   }
+}
+
 
   // === Enemy projectiles ===
   else {
@@ -494,31 +586,35 @@ function draw() {
   }
   ctx.restore();
 
- // Projectiles
-ctx.save();
-for (const p of projectiles) {
-  if (p instanceof Projectile) {
-    p.draw(ctx); // let the Projectile class handle colors
+  // Projectiles
+  ctx.save();
+  for (const p of projectiles) {
+    if (p instanceof Projectile) {
+      p.draw(ctx); // let the Projectile class handle colors
+    }
   }
-}
-ctx.restore();
+  ctx.restore();
 
+  ctx.restore(); // restore camera & shake
 
+  // ==== Flash Overlay ====
   if (flashAlpha>0) {
     ctx.fillStyle = `rgba(255,0,0,${flashAlpha})`;
     ctx.fillRect(0,0,gameWidth,gameHeight);
   }
 
-  ctx.restore(); // restore camera & shake
-
+  // ==== Pause Screen ====
   if (gameOver || (paused && !menuActive)) {
-  // Do not draw the canvas overlay if game is over or paused
-  if (!paused) return; // skip canvas drawing when game over
-  if (paused && !menuActive) drawPauseScreen();
+    if (!paused) return; // skip canvas drawing when game over
+    if (paused && !menuActive) drawPauseScreen();
+  }
+
+  // ==== SHOP OVERLAY ====
+  if (shopActive) {
+    drawShop();
+  }
 }
 
-
-}
 
 function drawPauseScreen() {
   ctx.fillStyle = "rgba(0,0,0,0.6)";

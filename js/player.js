@@ -55,6 +55,9 @@ export class Player {
     this.critChance = 0.2;       
     this.critMultiplier = 2.0; 
 
+    // === Life Leech ===
+    this.lifeLeech = 0.2; // 0 = off, 0.2 = 20% of damage dealt heals
+
     // Keyboard events
     window.addEventListener("keydown", e => { this.inputKeys[e.key.toLowerCase()] = true; });
     window.addEventListener("keyup", e => { this.inputKeys[e.key.toLowerCase()] = false; });
@@ -101,7 +104,7 @@ export class Player {
         this.projectileType = "normal";
         this.projectileSpeed = 6;
         this.projectileLife = 60;
-        this.maxDistance = 250; // <--- max distance for player projectiles
+        this.maxDistance = 250;
         this.pierce = 1;
         this.fireCooldownMax = 20;
         break;
@@ -201,19 +204,18 @@ export class Player {
             isCrit = true;
         }
 
-       const proj = new Projectile(
-    this.px + TILE_SIZE / 2,
-    this.py + TILE_SIZE / 2,
-    vx,
-    vy,
-    dmg,
-    this.projectileLife,
-    this.pierce,
-    type,
-    this.maxDistance,
-    this // <--- owner
-);
-
+        const proj = new Projectile(
+          this.px + TILE_SIZE / 2,
+          this.py + TILE_SIZE / 2,
+          vx,
+          vy,
+          dmg,
+          this.projectileLife,
+          this.pierce,
+          type,
+          this.maxDistance,
+          this
+        );
 
         // --- Add maxDistance tracking ---
         proj.startX = this.px + TILE_SIZE / 2;
@@ -275,6 +277,14 @@ export class Player {
     this.updateAnimation(targetPx, targetPy);
   }
 
+  // --- Life Leech Helper ---
+  healFromDamage(amount) {
+    if(this.lifeLeech > 0) {
+      const healAmount = Math.floor(amount * this.lifeLeech);
+      this.hp = Math.min(this.hp + healAmount, this.maxHp);
+    }
+  }
+
   updateAnimation(targetPx, targetPy) {
     const moving = this.px !== targetPx || this.py !== targetPy;
     const dirOffsetMap = { "up":0,"down":3,"left":6,"right":9 };
@@ -295,7 +305,7 @@ export class Player {
     this.currentAnim=this.spriteSlot;
   }
 
- draw(ctx) {
+  draw(ctx) {
     if (!this.spriteSheet.complete) {
         ctx.fillStyle = "blue";
         ctx.fillRect(this.px, this.py, TILE_SIZE, TILE_SIZE);
@@ -313,7 +323,7 @@ export class Player {
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE, 4);
     ctx.fillStyle = "green";
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE * (this.hp / this.maxHp), 4);
-}
+  }
 
   gainXp(amount, levelUpCallback){
     this.xp+=amount;
@@ -338,5 +348,12 @@ export class Player {
     this.hp-=amount;
     this.contactIFrames=30;
     if(this.hp<0) this.hp=0;
+  }
+
+  // ==== Unlock / Equip New Projectile ====
+  unlockProjectile(type) {
+    this.projectileType = type;             // Equip it immediately
+    if (!this.unlockedProjectiles) this.unlockedProjectiles = new Set();
+    this.unlockedProjectiles.add(type);     // Keep track of all unlocked projectiles
   }
 }
