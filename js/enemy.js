@@ -111,43 +111,94 @@ export class Enemy {
     const dy = player.y - this.y;
     const distance = Math.abs(dx) + Math.abs(dy);
 
-    // ==== TYPE-SPECIFIC AI ====
-    if(this.type === "ranged-kiter") {
-      if(distance <= 5 && this.fireCooldown <= 0) {
-        const dist = Math.hypot(dx, dy) || 1;
-        const speed = this.projectileSpeed || 3;
-        projectiles.push(new Projectile(
-          this.px + TILE_SIZE/2,
-          this.py + TILE_SIZE/2,
-          (dx/dist)*speed,
-          (dy/dist)*speed,
-          this.touchDamage,
-          90, 1, "arrow", 300, this
-        ));
-        this.fireCooldown = this.fireCooldownMax || 50;
-      }
+   // ==== TYPE-SPECIFIC AI ====
 
-      if(distance <= 2){
-        const awayX = this.x - Math.sign(dx);
-        const awayY = this.y - Math.sign(dy);
-        if(map.isWalkable(awayX, awayY)){
-          this.path = [{x: awayX, y: awayY}];
-        }
-      } else if(distance > 4){
-        this.path = findPath(this.x, this.y, player.x, player.y, map, true);
-      }
+// Kiting shooter AI → now melee with death explosion
+if (this.aiType === "ranged-kiter") {
+  // Melee movement: try to stay near player
+  if (distance > 1) {
+    this.path = findPath(this.x, this.y, player.x, player.y, map, true);
+  }
 
-      if(this.fireCooldown > 0) this.fireCooldown--;
-    } 
-    else if(this.type === "ambusher") {
-      if(distance > 6 && this.specialCooldown <= 0){
-        this.x = player.x + Math.floor(Math.random()*5)-2;
-        this.y = player.y + Math.floor(Math.random()*5)-2;
-        this.px = this.x*TILE_SIZE;
-        this.py = this.y*TILE_SIZE;
-        this.specialCooldown = 120;
-      } else this.specialCooldown--;
+  // Explode on death
+  if (this.hp <= 0) {
+    const explosionRadius = TILE_SIZE * 2;
+    const explosionDamage = 25; // adjust or multiply by difficulty if needed
+
+    // Damage the player if inside radius
+    const dx = player.px + TILE_SIZE/2 - (this.px + TILE_SIZE/2);
+    const dy = player.py + TILE_SIZE/2 - (this.py + TILE_SIZE/2);
+    if (Math.hypot(dx, dy) <= explosionRadius) {
+      player.takeDamage(explosionDamage);
     }
+
+    // Add a visual purple explosion
+    if (typeof explosions !== "undefined") {
+      explosions.push({
+        x: this.px + TILE_SIZE/2,
+        y: this.py + TILE_SIZE/2,
+        radius: explosionRadius,
+        color: "purple",
+        life: 15
+      });
+    }
+
+    // Mark for removal
+    this.remove = true;
+    return;
+  }
+}
+
+
+// Ambusher AI
+if (this.aiType === "ambusher") {
+  if (distance > 6 && this.specialCooldown <= 0) {
+    // teleport near player
+    this.x = player.x + Math.floor(Math.random()*5)-2;
+    this.y = player.y + Math.floor(Math.random()*5)-2;
+    this.px = this.x*TILE_SIZE;
+    this.py = this.y*TILE_SIZE;
+    this.specialCooldown = 120;
+
+    // recalc path
+    this.path = findPath(this.x, this.y, player.x, player.y, map, true);
+    this.pathUpdateTicker = 0;
+  } else {
+    this.specialCooldown--;
+    this.pathUpdateTicker++;
+    if(this.pathUpdateTicker >= 10 || !this.path || this.path.length===0) {
+      this.path = findPath(this.x, this.y, player.x, player.y, map, true);
+      this.pathUpdateTicker = 0;
+    }
+
+    if(this.path && this.path.length>1){
+      const nextTile = this.path[1];
+      const tx = nextTile.x*TILE_SIZE;
+      const ty = nextTile.y*TILE_SIZE;
+
+      if(nextTile.x > this.x) this.dir = "right";
+      else if(nextTile.x < this.x) this.dir = "left";
+      else if(nextTile.y > this.y) this.dir = "down";
+      else if(nextTile.y < this.y) this.dir = "up";
+
+      const dist = Math.hypot(tx-this.px, ty-this.py);
+      if(dist>0){
+        const step = Math.min(this.speed, dist);
+        this.px += ((tx-this.px)/dist)*step;
+        this.py += ((ty-this.py)/dist)*step;
+      }
+
+      if(Math.abs(this.px-tx)<0.1 && Math.abs(this.py-ty)<0.1){
+        this.x = nextTile.x;
+        this.y = nextTile.y;
+        map.applyTileEffects?.(this, this.x, this.y);
+        this.path.shift();
+      }
+    }
+  }
+}
+
+
 
     // ==== MELEE ATTACK ====
     if(distance === 1 && this.attackCooldown <= 0) {
