@@ -26,6 +26,7 @@ let mouse = { x: 0, y: 0 };
 let projectiles = [];
 let xpOrbs = [];
 let damageNumbers = [];
+let explosions = [];
 let spawnTimer = 0;
 let spawnInterval = 180;
 let difficulty = 1;
@@ -193,7 +194,22 @@ function showCharacterSelection() {
     btn.onclick = () => selectCharacter(c.type);
     selectionUI.appendChild(btn);
   });
+
+  // === Controls Help ===
+  const controls = document.createElement("div");
+  controls.style.marginTop = "20px";
+  controls.style.color = "#fff";
+  controls.style.font = "16px sans-serif";
+  controls.innerHTML = `
+    <h3>Controls</h3>
+    <p>WASD / Arrow Keys - Move</p>
+    <p>Space / Tap Attack - Fire</p>
+    <p>K - Open Shop</p>
+    <p>Esc - Pause</p>
+  `;
+  selectionUI.appendChild(controls);
 }
+
 
 // ==== Player Selection / Start ====
 function selectCharacter(type) {
@@ -265,14 +281,14 @@ const shopItems = [
   { name: "4) Heavy Projectile", cost: 150, action: () => player.unlockProjectile("heavy") },
 
   { name: "5) Speed Boost", cost: 12000, action: () => { player.speed += 1; } },
-  { name: "6) Exploding Projectiles*broken*", cost: 250, action: () => { player.projectileExplosion = true; } },
+  { name: "6) Exploding Projectiles", cost: 250, action: () => { player.projectileExplosion = true; } },
   { name: "7) Life Leech", cost: 30000, action: () => { player.lifeLeech = 0.2; } }, // heals 20% of damage dealt
   { name: "8) Critical Boost", cost: 18000, action: () => { 
       player.critChance = Math.min(player.critChance + 0.1, 1); 
       player.critMultiplier += 0.5; 
     } 
   },
-  { name: "9) Max Range Increase*broken*", cost: 150, action: () => { player.maxDistance += 100; } },
+  { name: "9) Max Range Increase", cost: 150, action: () => { player.maxDistance += 100; } },
 ];
 
 
@@ -351,12 +367,14 @@ function update() {
   spawnTimer++;
   if (spawnTimer >= spawnInterval) { spawnTimer = 0; spawnEnemy(); }
 
+  // ==== Enemy Update ====
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i];
     if (e.entryDelay > 0) { e.entryDelay--; continue; }
     e.update(player, frameCount, projectiles);
     map.applyTileEffects(e, Math.floor(e.px / TILE_SIZE), Math.floor(e.py / TILE_SIZE));
 
+    // Shooter enemies fire
     const shooterTypes = ["shooter", "spitter", "wizard", "archer", "bossling"];
     if (shooterTypes.includes(e.type) && e.fireCooldown <= 0) {
       const dx = (player.px + TILE_SIZE/2) - (e.px + TILE_SIZE/2);
@@ -367,7 +385,7 @@ function update() {
       const vy = (dy / dist) * speed;
 
       let projType = "normal";
-      let maxRange = 150; // default distance
+      let maxRange = 150;
       switch(e.type) {
         case "spitter": projType = "bouncing"; maxRange=120; break;
         case "wizard": projType = "homing"; maxRange=180; break;
@@ -375,12 +393,12 @@ function update() {
         case "bossling": projType = "heavy"; maxRange=250; break;
       }
 
-      // Initialize pierce as 1 for enemy projectiles, add maxDistance
       projectiles.push(new Projectile(e.px + TILE_SIZE/2, e.py + TILE_SIZE/2, vx, vy, e.touchDamage*0.8, 60, 1, projType, maxRange));
       e.fireCooldown = e.fireCooldownMax;
     }
     if (e.fireCooldown > 0) e.fireCooldown--;
 
+    // Enemy death
     if (e.hp <= 0) {
       const goldDrop = e.isMiniBoss ? Math.floor(50 + difficulty*5) : Math.floor(5 + difficulty*2);
       const xpDrop = e.isMiniBoss ? 10 + Math.floor(difficulty/2) : 1 + Math.floor(difficulty/2);
@@ -390,75 +408,104 @@ function update() {
     }
   }
 
-    // ==== Projectile Update with Pierce & Distance ====
-for (let i = projectiles.length - 1; i >= 0; i--) {
-  const p = projectiles[i];
-
-  if (!(p instanceof Projectile)) {
-    projectiles.splice(i, 1);
-    continue;
-  }
-
-  p.update(enemies);
-
-  // Distance check
-  const dx = p.x - (p.startX ?? p.x);
-  const dy = p.y - (p.startY ?? p.y);
-  if (p.maxDistance && Math.hypot(dx, dy) >= p.maxDistance) {
-    projectiles.splice(i, 1);
-    continue;
-  }
-
-  // === Player projectiles ===
-  if (p.owner === player) {
-  for (let j = enemies.length - 1; j >= 0; j--) {
-    const e = enemies[j];
-    if (circleRectOverlap(p.x, p.y, p.radius, e.px, e.py, TILE_SIZE, TILE_SIZE)) {
-      let dmg = p.damage * 1.5;
-      const isCrit = Math.random() < player.critChance;
-      if (isCrit) dmg *= 2;
-      e.hp -= dmg;
-
-      // --- Life Leech ---
-      player.healFromDamage(dmg);
-
-      damageNumbers.push({
-        x: e.px + TILE_SIZE / 2,
-        y: e.py,
-        value: Math.floor(dmg),
-        life: 30,
-        color: isCrit ? "#ff0" : "#fff",
-        font: isCrit ? "bold 18px sans-serif" : "16px sans-serif",
-        crit: isCrit
-      });
-
-      e.flashTimer = 5;
-
-      p.pierce--;
-      if (p.pierce <= 0) break;
+  // ==== Projectile Update with Pierce, Range & Explosion ====
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    if (!(p instanceof Projectile)) { 
+      projectiles.splice(i,1); 
+      continue; 
     }
-  }
-}
 
+    p.update(enemies);
 
-  // === Enemy projectiles ===
-  else {
-    if (
-      p.owner !== player && // don’t hit their shooter
-      circleRectOverlap(p.x, p.y, p.radius, player.px, player.py, TILE_SIZE, TILE_SIZE)
-    ) {
-      player.takeDamage(p.damage);
+    // Distance check
+    const dx = p.x - (p.startX ?? p.x);
+    const dy = p.y - (p.startY ?? p.y);
+    if (p.maxDistance && Math.hypot(dx, dy) >= p.maxDistance) {
       projectiles.splice(i, 1);
       continue;
     }
-  }
 
-  // Remove projectile if life ended or pierce used up
-  if (p.life <= 0 || p.pierce <= 0) {
-    projectiles.splice(i, 1);
-  }
-}
+    // === Player projectiles ===
+    if (p.owner === player) {
+      for (let j = enemies.length - 1; j >= 0; j--) {
+        const e = enemies[j];
+        if (circleRectOverlap(p.x, p.y, p.radius, e.px, e.py, TILE_SIZE, TILE_SIZE)) {
+          let dmg = p.damage * 1.5;
+          const isCrit = Math.random() < player.critChance;
+          if (isCrit) dmg *= 2;
+          e.hp -= dmg;
 
+          // Life leech
+          player.healFromDamage(dmg);
+
+          damageNumbers.push({
+            x: e.px + TILE_SIZE / 2,
+            y: e.py,
+            value: Math.floor(dmg),
+            life: 30,
+            color: isCrit ? "#ff0" : "#fff",
+            font: isCrit ? "bold 18px sans-serif" : "16px sans-serif",
+            crit: isCrit
+          });
+
+          e.flashTimer = 5;
+
+          // === Explosion Damage & Visual ===
+          if (player.projectileExplosion) {
+            const explosionRadius = 60;
+
+            // spawn visual effect
+            explosions.push({
+              x: p.x,
+              y: p.y,
+              radius: explosionRadius,
+              life: 20,
+              maxLife: 20
+            });
+
+            for (const other of enemies) {
+              if (other === e) continue;
+              const dist = Math.hypot((other.px+TILE_SIZE/2)-p.x, (other.py+TILE_SIZE/2)-p.y);
+              if (dist <= explosionRadius) {
+                const splash = Math.floor(dmg * 0.5);
+                other.hp -= splash;
+                player.healFromDamage(splash);
+                damageNumbers.push({
+                  x: other.px + TILE_SIZE / 2,
+                  y: other.py,
+                  value: splash,
+                  life: 20,
+                  color: "#f66",
+                  font: "14px sans-serif"
+                });
+                other.flashTimer = 5;
+              }
+            }
+          }
+
+          p.pierce--;
+          if (p.pierce <= 0) break;
+        }
+      }
+    }
+    // === Enemy projectiles ===
+    else {
+      if (
+        p.owner !== player &&
+        circleRectOverlap(p.x, p.y, p.radius, player.px, player.py, TILE_SIZE, TILE_SIZE)
+      ) {
+        player.takeDamage(p.damage);
+        projectiles.splice(i, 1);
+        continue;
+      }
+    }
+
+    // Remove projectile if life ended or pierce used up
+    if (p.life <= 0 || p.pierce <= 0) {
+      projectiles.splice(i, 1);
+    }
+  }
 
   // XP pickup
   for (let i = xpOrbs.length-1; i>=0; i--) {
@@ -478,37 +525,38 @@ for (let i = projectiles.length - 1; i >= 0; i--) {
     if (d.life<=0) damageNumbers.splice(i,1);
   }
 
+  // Explosion visuals update
+  for (let i=explosions.length-1; i>=0; i--) {
+    const ex = explosions[i];
+    ex.life--;
+    if (ex.life <= 0) explosions.splice(i,1);
+  }
+
+  // Game over check
   if (player.hp <= 0 && !gameOver) {
-  gameOver = true;
+    gameOver = true;
+    lastSessionStats = {
+      level: player.level,
+      gold: player.gold,
+      time: Math.floor(frameCount / 60),
+    };
+    const overlay = document.getElementById("deathOverlay");
+    overlay.innerHTML = `
+      <h2>You Died</h2>
+      <p>Level: ${lastSessionStats.level}</p>
+      <p>Gold: ${lastSessionStats.gold}</p>
+      <p>Time: ${lastSessionStats.time}s</p>
+      <p><a href="https://mirageonlineclassic.com" target="_blank">Mirage Online Classic - Visit the pixel MMORPG!</a></p>
+      <button id="restartBtn">Restart</button>
+    `;
+    overlay.style.display = "block";
+    document.getElementById("restartBtn").onclick = () => {
+      overlay.style.display = "none";
+      showCharacterSelection();
+    };
+  }
 
-  // Save last session stats
-  lastSessionStats = {
-    level: player.level,
-    gold: player.gold,
-    time: Math.floor(frameCount / 60),
-  };
-
-  // Populate overlay with stats + link
-  const overlay = document.getElementById("deathOverlay");
-  overlay.innerHTML = `
-    <h2>You Died</h2>
-    <p>Level: ${lastSessionStats.level}</p>
-    <p>Gold: ${lastSessionStats.gold}</p>
-    <p>Time: ${lastSessionStats.time}s</p>
-    <p><a href="https://mirageonlineclassic.com" target="_blank">Mirage Online Classic - Visit the pixel MMORPG!</a></p>
-    <button id="restartBtn">Restart</button>
-  `;
-  overlay.style.display = "block";
-
-  // Restart button handler
-  document.getElementById("restartBtn").onclick = () => {
-    overlay.style.display = "none";
-    showCharacterSelection(); // reset game
-  };
-}
-
-
-  // ==== CAMERA UPDATE ====
+  // Camera update
   if (player) {
     camera.x = player.px + TILE_SIZE/2 - gameWidth/(2*camera.zoom);
     camera.y = player.py + TILE_SIZE/2 - gameHeight/(2*camera.zoom);
@@ -518,6 +566,8 @@ for (let i = projectiles.length - 1; i >= 0; i--) {
 
   updateHUD();
 }
+
+
 
 
 // ==== Draw ====
@@ -586,11 +636,25 @@ function draw() {
   }
   ctx.restore();
 
+  // Explosions
+  ctx.save();
+  for (const ex of explosions) {
+    const alpha = ex.life / ex.maxLife;
+    ctx.beginPath();
+    ctx.arc(ex.x, ex.y, ex.radius * (1 - alpha * 0.5), 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 100, 0, ${0.4 * alpha})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255, 200, 0, ${0.6 * alpha})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  ctx.restore();
+
   // Projectiles
   ctx.save();
   for (const p of projectiles) {
     if (p instanceof Projectile) {
-      p.draw(ctx); // let the Projectile class handle colors
+      p.draw(ctx);
     }
   }
   ctx.restore();
@@ -605,7 +669,7 @@ function draw() {
 
   // ==== Pause Screen ====
   if (gameOver || (paused && !menuActive)) {
-    if (!paused) return; // skip canvas drawing when game over
+    if (!paused) return;
     if (paused && !menuActive) drawPauseScreen();
   }
 
@@ -614,7 +678,6 @@ function draw() {
     drawShop();
   }
 }
-
 
 function drawPauseScreen() {
   ctx.fillStyle = "rgba(0,0,0,0.6)";
@@ -639,7 +702,15 @@ function drawPauseScreen() {
       gameHeight / 2 + 30
     );
   }
+
+  // === Controls Help ===
+  ctx.font = "16px sans-serif";
+  ctx.fillText("WASD / Arrows = Move", gameWidth / 2, gameHeight / 2 + 80);
+  ctx.fillText("Space = Attack", gameWidth / 2, gameHeight / 2 + 100);
+  ctx.fillText("K = Shop", gameWidth / 2, gameHeight / 2 + 120);
+  ctx.fillText("Esc = Pause", gameWidth / 2, gameHeight / 2 + 140);
 }
+
 
 // ==== HUD ====
 function updateHUD() {
