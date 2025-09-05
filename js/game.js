@@ -2,7 +2,7 @@ import { map, TILE_SIZE } from "./map.js";
 import { Player } from "./player.js";
 import { Projectile } from "./projectile.js";
 import { rollUpgrades, applyUpgrade, rollUberUpgrades } from "./upgrades.js";
-import { Enemy, spawnMiniBoss } from "./enemy.js";
+import { Enemy, spawnMiniBoss, spawnBoss } from "./enemy.js";
 
 // === Enemies ===
 let enemies = [
@@ -58,8 +58,11 @@ window.addEventListener("keyup", (e) => { if (!menuActive) keys[e.key] = false; 
 
 // ==== Spawning ====
 function spawnEnemy() {
+  if (!player) return;
+
   const minDistance = 5;
-  for (let i = 0; i < 8; i++) {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    // Pick a random spawn edge
     const side = Math.floor(Math.random() * 4);
     let tx, ty;
     if (side === 0) { tx = 0; ty = Math.floor(Math.random() * (gameHeight / TILE_SIZE)); }
@@ -67,16 +70,28 @@ function spawnEnemy() {
     else if (side === 2) { ty = 0; tx = Math.floor(Math.random() * (gameWidth / TILE_SIZE)); }
     else { ty = Math.floor(gameHeight / TILE_SIZE) - 1; tx = Math.floor(Math.random() * (gameWidth / TILE_SIZE)); }
 
-    if (!map.isWalkable(tx, ty) || Math.abs(tx - player.x) + Math.abs(ty - player.y) < minDistance) continue;
+    if (!map.isWalkable(tx, ty)) continue;
+    if (Math.abs(tx - player.x) + Math.abs(ty - player.y) < minDistance) continue;
 
+    // === Boss spawn (rare) ===
+    if (Math.random() < 0.02 && !enemies.some(e => e.type === "boss")) {
+      const bossTypes = ["mega", "storm", "berserk"];
+      const type = bossTypes[Math.floor(Math.random() * bossTypes.length)];
+      enemies.push(spawnBoss(tx, ty, type));
+      return;
+    }
+
+    // === Mini-boss spawn (uncommon) ===
     if (Math.random() < 0.05) {
-      const types = ["classic", "rain", "tracking"];
-      const type = types[Math.floor(Math.random() * types.length)];
+      const miniTypes = ["classic", "rain", "tracking"];
+      const type = miniTypes[Math.floor(Math.random() * miniTypes.length)];
       enemies.push(spawnMiniBoss(tx, ty, type));
       return;
     }
 
-    let type = "normal", spriteIndex = 0;
+    // === Normal enemy spawn ===
+    let type = "normal";
+    let spriteIndex = 0;
     const rand = Math.random();
     if (rand < 0.1) { type = "brute"; spriteIndex = 1; }
     else if (rand < 0.2) { type = "shooter"; spriteIndex = 2; }
@@ -90,24 +105,28 @@ function spawnEnemy() {
     else { type = "archer"; spriteIndex = 10; }
 
     const e = new Enemy(tx, ty, spriteIndex, type);
+
+    // Set stats based on type & difficulty
     switch (type) {
-      case "brute": e.maxHp = 120 + 30*difficulty; e.hp=e.maxHp; e.touchDamage=12+3*difficulty; e.speed=0.8; break;
-      case "shooter": e.maxHp = 80 + 25*difficulty; e.hp=e.maxHp; e.touchDamage=6+2*difficulty; e.speed=0.9; e.projectileSpeed=3; e.fireCooldownMax=120; e.fireCooldown=e.fireCooldownMax; break;
-      case "fast": e.maxHp = 40 + 10*difficulty; e.hp=e.maxHp; e.touchDamage=4+difficulty; e.speed=1.8; break;
-      case "tank": e.maxHp = 150 + 50*difficulty; e.hp=e.maxHp; e.touchDamage=10+2*difficulty; e.speed=0.6; break;
-      case "spitter": e.maxHp = 60 + 20*difficulty; e.hp=e.maxHp; e.touchDamage=3+1*difficulty; e.speed=1.0; e.projectileSpeed=2.5; e.fireCooldownMax=90; e.fireCooldown=e.fireCooldownMax; break;
-      case "bossling": e.maxHp = 200 + 50*difficulty; e.hp=e.maxHp; e.touchDamage=15+4*difficulty; e.speed=1.0; e.projectileSpeed=3; e.fireCooldownMax=100; e.fireCooldown=e.fireCooldownMax; break;
-      case "assassin": e.maxHp = 50 + 15*difficulty; e.hp=e.maxHp; e.touchDamage=8+2*difficulty; e.speed=2.0; break;
-      case "wizard": e.maxHp = 40 + 10*difficulty; e.hp=e.maxHp; e.touchDamage=6+2*difficulty; e.speed=1.2; e.projectileSpeed=3.5; e.fireCooldownMax=90; e.fireCooldown=e.fireCooldownMax; break;
-      case "golem": e.maxHp = 180 + 60*difficulty; e.hp=e.maxHp; e.touchDamage=14+4*difficulty; e.speed=0.5; break;
-      case "archer": e.maxHp = 70 + 20*difficulty; e.hp=e.maxHp; e.touchDamage=5+1.5*difficulty; e.speed=1.0; e.projectileSpeed=2.8; e.fireCooldownMax=100; e.fireCooldown=e.fireCooldownMax; break;
-      default: e.maxHp = 50 + 15*difficulty; e.hp=e.maxHp; e.touchDamage=5+1.5*difficulty; e.speed=1.0;
+      case "brute": e.maxHp = 120 + 30*difficulty; e.hp = e.maxHp; e.touchDamage = 12 + 3*difficulty; e.speed = 0.8; break;
+      case "shooter": e.maxHp = 80 + 25*difficulty; e.hp = e.maxHp; e.touchDamage = 6 + 2*difficulty; e.speed = 0.9; e.projectileSpeed=3; e.fireCooldownMax=120; e.fireCooldown=e.fireCooldownMax; break;
+      case "fast": e.maxHp = 40 + 10*difficulty; e.hp = e.maxHp; e.touchDamage = 4 + difficulty; e.speed = 1.8; break;
+      case "tank": e.maxHp = 150 + 50*difficulty; e.hp = e.maxHp; e.touchDamage = 10 + 2*difficulty; e.speed = 0.6; break;
+      case "spitter": e.maxHp = 60 + 20*difficulty; e.hp = e.maxHp; e.touchDamage = 3 + difficulty; e.speed = 1.0; e.projectileSpeed=2.5; e.fireCooldownMax=90; e.fireCooldown=e.fireCooldownMax; break;
+      case "bossling": e.maxHp = 200 + 50*difficulty; e.hp = e.maxHp; e.touchDamage = 15 + 4*difficulty; e.speed = 1.0; e.projectileSpeed=3; e.fireCooldownMax=100; e.fireCooldown=e.fireCooldownMax; break;
+      case "assassin": e.maxHp = 50 + 15*difficulty; e.hp = e.maxHp; e.touchDamage = 8 + 2*difficulty; e.speed = 2.0; break;
+      case "wizard": e.maxHp = 40 + 10*difficulty; e.hp = e.maxHp; e.touchDamage = 6 + 2*difficulty; e.speed = 1.2; e.projectileSpeed=3.5; e.fireCooldownMax=90; e.fireCooldown=e.fireCooldownMax; break;
+      case "golem": e.maxHp = 180 + 60*difficulty; e.hp = e.maxHp; e.touchDamage = 14 + 4*difficulty; e.speed = 0.5; break;
+      case "archer": e.maxHp = 70 + 20*difficulty; e.hp = e.maxHp; e.touchDamage = 5 + 1.5*difficulty; e.speed = 1.0; e.projectileSpeed=2.8; e.fireCooldownMax=100; e.fireCooldown=e.fireCooldownMax; break;
+      default: e.maxHp = 50 + 15*difficulty; e.hp = e.maxHp; e.touchDamage = 5 + 1.5*difficulty; e.speed = 1.0;
     }
+
     e.entryDelay = 30;
     enemies.push(e);
     return;
   }
 }
+
 
 // ==== Initialization ====
 function init() {
@@ -283,24 +302,27 @@ function update() {
     }
   }
 
-  // ==== Projectile Update with Pierce & Distance ====
-  for (let i = projectiles.length - 1; i >= 0; i--) {
-    const p = projectiles[i];
+    // ==== Projectile Update with Pierce & Distance ====
+for (let i = projectiles.length - 1; i >= 0; i--) {
+  const p = projectiles[i];
 
-    if (!(p instanceof Projectile)) { projectiles.splice(i,1); continue; }
+  if (!(p instanceof Projectile)) {
+    projectiles.splice(i, 1);
+    continue;
+  }
 
-    p.update(enemies);
+  p.update(enemies);
 
-    // Check distance
-    const dx = p.x - (p.startX ?? p.x);
-    const dy = p.y - (p.startY ?? p.y);
-    if (p.maxDistance && Math.hypot(dx, dy) >= p.maxDistance) {
-      projectiles.splice(i,1);
-      continue;
-    }
+  // Distance check
+  const dx = p.x - (p.startX ?? p.x);
+  const dy = p.y - (p.startY ?? p.y);
+  if (p.maxDistance && Math.hypot(dx, dy) >= p.maxDistance) {
+    projectiles.splice(i, 1);
+    continue;
+  }
 
-    // Track which enemies were hit this frame to prevent double-hit
-    let hitCount = 0;
+  // === Player projectiles ===
+  if (p.owner === player) {
     for (let j = enemies.length - 1; j >= 0; j--) {
       const e = enemies[j];
       if (circleRectOverlap(p.x, p.y, p.radius, e.px, e.py, TILE_SIZE, TILE_SIZE)) {
@@ -321,16 +343,30 @@ function update() {
 
         e.flashTimer = 5;
 
-        hitCount++;
         p.pierce--;
-
-        if (p.pierce <= 0) break; // stops piercing more enemies
+        if (p.pierce <= 0) break;
       }
     }
-
-    // Remove projectile if life ended or pierce used up
-    if (p.life <= 0 || p.pierce <= 0) projectiles.splice(i, 1);
   }
+
+  // === Enemy projectiles ===
+  else {
+    if (
+      p.owner !== player && // don’t hit their shooter
+      circleRectOverlap(p.x, p.y, p.radius, player.px, player.py, TILE_SIZE, TILE_SIZE)
+    ) {
+      player.takeDamage(p.damage);
+      projectiles.splice(i, 1);
+      continue;
+    }
+  }
+
+  // Remove projectile if life ended or pierce used up
+  if (p.life <= 0 || p.pierce <= 0) {
+    projectiles.splice(i, 1);
+  }
+}
+
 
   // XP pickup
   for (let i = xpOrbs.length-1; i>=0; i--) {
@@ -439,16 +475,15 @@ function draw() {
   }
   ctx.restore();
 
-  // Projectiles
-  ctx.save();
-  for (const p of projectiles) {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
-    const colors = { normal:"#fff", spread:"#ff0", bouncing:"#0ff", homing:"#f0f", heavy:"#f33" };
-    ctx.fillStyle = colors[p.type] || "#fff";
-    ctx.fill();
+ // Projectiles
+ctx.save();
+for (const p of projectiles) {
+  if (p instanceof Projectile) {
+    p.draw(ctx); // let the Projectile class handle colors
   }
-  ctx.restore();
+}
+ctx.restore();
+
 
   if (flashAlpha>0) {
     ctx.fillStyle = `rgba(255,0,0,${flashAlpha})`;
@@ -458,10 +493,12 @@ function draw() {
   ctx.restore(); // restore camera & shake
 
   if (gameOver) {
-    drawGameOverScreen();
-  } else if (paused && !menuActive) {
-    drawPauseScreen();
-  }
+  // Show the HTML overlay instead of drawing on canvas
+  document.getElementById("deathOverlay").style.display = "block";
+} else if (paused && !menuActive) {
+  drawPauseScreen();
+}
+
 }
 
 function drawPauseScreen() {

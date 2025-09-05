@@ -201,16 +201,19 @@ export class Player {
             isCrit = true;
         }
 
-        const proj = new Projectile(
-            this.px + TILE_SIZE / 2,
-            this.py + TILE_SIZE / 2,
-            vx,
-            vy,
-            dmg,
-            this.projectileLife,
-            this.pierce,
-            type
-        );
+       const proj = new Projectile(
+    this.px + TILE_SIZE / 2,
+    this.py + TILE_SIZE / 2,
+    vx,
+    vy,
+    dmg,
+    this.projectileLife,
+    this.pierce,
+    type,
+    this.maxDistance,
+    this // <--- owner
+);
+
 
         // --- Add maxDistance tracking ---
         proj.startX = this.px + TILE_SIZE / 2;

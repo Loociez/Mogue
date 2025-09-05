@@ -1,6 +1,16 @@
-// projectile.js
 export class Projectile {
-  constructor(x, y, vx, vy, damage, life = 30, pierce = 1, type = "normal", maxDistance = null) {
+  constructor(
+    x,
+    y,
+    vx,
+    vy,
+    damage,
+    life = 30,
+    pierce = 1,
+    type = "normal",
+    maxDistance = null,
+    owner = null
+  ) {
     this.x = x;
     this.y = y;
     this.vx = vx;
@@ -10,12 +20,17 @@ export class Projectile {
     this.pierce = pierce; // number of enemies it can still hit
     this.type = type;
 
+    this.owner = owner; // reference to whoever spawned this projectile
+
     // Distance tracking
     this.startX = x;
     this.startY = y;
-    this.maxDistance = maxDistance; // if set, projectile dies after traveling this far
+    this.maxDistance = maxDistance;
 
-    // Crit-related fields (for visual effect, not piercing)
+    // Delay collision with owner for a short time (avoids instant self-hit)
+    this.ignoreOwnerFrames = 5;
+
+    // Crit-related fields
     this.color = null;
     this.critText = null;
     this.critYOffset = 0;
@@ -45,6 +60,7 @@ export class Projectile {
       let closest = null;
       let minDist = Infinity;
       for (const e of enemies) {
+        if (e === this.owner) continue; // skip owner
         const dist = Math.hypot(e.px + 16 - this.x, e.py + 16 - this.y);
         if (dist < minDist) {
           minDist = dist;
@@ -65,12 +81,17 @@ export class Projectile {
     this.y += this.vy;
     this.life--;
 
+    // Allow projectiles to start colliding with owner after a short time
+    if (this.ignoreOwnerFrames > 0) {
+      this.ignoreOwnerFrames--;
+    }
+
     // Distance check
     if (this.maxDistance !== null) {
       const dx = this.x - this.startX;
       const dy = this.y - this.startY;
       if (Math.hypot(dx, dy) >= this.maxDistance) {
-        this.life = 0; // mark projectile dead
+        this.life = 0;
       }
     }
 
@@ -88,13 +109,13 @@ export class Projectile {
 
     // Crit text float + fade
     if (this.critText) {
-      this.critYOffset -= 0.5; 
-      this.critAlpha -= 0.02;  
+      this.critYOffset -= 0.5;
+      this.critAlpha -= 0.02;
       if (this.critAlpha <= 0) {
         this.critText = null;
         this.critAlpha = 1;
         this.critYOffset = 0;
-        this.color = null; 
+        this.color = null;
       }
     }
 
@@ -103,36 +124,44 @@ export class Projectile {
   }
 
   draw(ctx) {
-    if (this.color) {
-      ctx.fillStyle = this.color;
-    } else {
-      const colors = {
-        normal: "#fff",
-        spread: "#ff0",
-        bouncing: "#0ff",
-        homing: "#f0f",
-        heavy: "#f33",
-      };
-      ctx.fillStyle = colors[this.type] || "#fff";
-    }
-
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw crit text if any
-    if (this.critText) {
-      ctx.fillStyle = `rgba(255, 255, 0, ${this.critAlpha})`;
-      ctx.font = "bold 16px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText(this.critText, this.x, this.y + this.critYOffset - 12);
-    }
+  // Boss and mini-boss projectiles are always orange
+  if (this.owner?.type === "boss" || this.owner?.isMiniBoss) {
+    ctx.fillStyle = "#ff6600";
   }
+  // Custom color override
+  else if (this.color) {
+    ctx.fillStyle = this.color;
+  } 
+  else {
+    const colors = {
+      normal: "#fff",
+      spread: "#ff0",
+      bouncing: "#0ff",
+      homing: "#f0f",
+      heavy: "#f33",
+      rain: "#00f" // mini-boss rain projectile
+    };
+    ctx.fillStyle = colors[this.type] || "#fff";
+  }
+
+  ctx.beginPath();
+  ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+
 
   isAlive() {
     if (this.life <= 0) return false;
     if (this.type === "bouncing" && this.bounces <= 0) return false;
-    if (this.pierce <= 0) return false; // remove projectile if pierce used up
+    if (this.pierce <= 0) return false;
     return true;
+  }
+
+  // Safer damage check
+  canDamage(target) {
+    // cannot damage owner (until ignoreOwnerFrames expires)
+    if (target === this.owner && this.ignoreOwnerFrames > 0) return false;
+    return this.pierce > 0;
   }
 }
