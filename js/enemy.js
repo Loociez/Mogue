@@ -91,6 +91,12 @@ export class Enemy {
     this.projectileDamageMultiplier = 1;
     this.projectileRange = 0;
     this.projectileType = "heavy";
+
+    // ==== Late-game boss radial burst ====
+    this.isLateBoss = false;
+    this.lateBossCooldown = 0;
+    this.lateBossCooldownMax = 180;
+    this.lateBossProjectiles = 12;
   }
 
   takeDamage(amount) {
@@ -156,98 +162,120 @@ export class Enemy {
     if (this.flashTimer>0) this.flashTimer--;
 
     // ==== MINI-BOSS SPECIALS ====
-if (this.isMiniBoss) {
-  this.specialCooldown--;
-  if (this.specialCooldown<=0) {
-    this.specialCooldown = this.specialCooldownMax;
-    const spawnProj = (vx, vy, type="normal", damageMult=1) => {
-      // Offset spawn position so it doesn’t overlap the enemy
-      const ox = vx !== 0 ? Math.sign(vx) * 10 : 0;
-      const oy = vy !== 0 ? Math.sign(vy) * 10 : 0;
-      projectiles.push(new Projectile(
-        this.px + TILE_SIZE/2 + ox,
-        this.py + TILE_SIZE/2 + oy,
-        vx, vy,
-        this.touchDamage*damageMult,
-        90, 1, type, 300, this
-      ));
-    };
+    if (this.isMiniBoss) {
+      this.specialCooldown--;
+      if (this.specialCooldown<=0) {
+        this.specialCooldown = this.specialCooldownMax;
+        const spawnProj = (vx, vy, type="normal", damageMult=1) => {
+          const ox = vx !== 0 ? Math.sign(vx) * 10 : 0;
+          const oy = vy !== 0 ? Math.sign(vy) * 10 : 0;
+          projectiles.push(new Projectile(
+            this.px + TILE_SIZE/2 + ox,
+            this.py + TILE_SIZE/2 + oy,
+            vx, vy,
+            this.touchDamage*damageMult,
+            90, 1, type, 300, this
+          ));
+        };
 
-    switch(this.specialType) {
-      case "classic":
-        const speed = 3;
-        [[speed,0],[-speed,0],[0,speed],[0,-speed]].forEach(([vx,vy])=>spawnProj(vx,vy));
-        break;
+        switch(this.specialType) {
+          case "classic":
+            const speed = 3;
+            [[speed,0],[-speed,0],[0,speed],[0,-speed]].forEach(([vx,vy])=>spawnProj(vx,vy));
+            break;
 
-      case "rain":
-        if (this.rainTelegraph.length===0) {
-          for (let i=0;i<5;i++) {
-            const offsetX=(Math.random()-0.5)*TILE_SIZE*3;
-            const x=player.px+offsetX;
-            const y=player.py-TILE_SIZE*(i+1);
-            this.rainTelegraph.push({x,y,countdown:60,active:false});
-          }
-        }
-        for (let i=this.rainTelegraph.length-1;i>=0;i--) {
-          const t=this.rainTelegraph[i];
-          t.countdown--;
-          if(!t.active && t.countdown<=0) t.active=true;
-          if(t.active){
-            projectiles.push(new Projectile(
-              t.x, t.y, 0, 4,
-              this.touchDamage*0.8, 120, 1, "rain", 300, this
-            ));
-            this.rainTelegraph.splice(i,1);
-          }
-        }
-        break;
+          case "rain":
+            if (this.rainTelegraph.length===0) {
+              for (let i=0;i<5;i++) {
+                const offsetX=(Math.random()-0.5)*TILE_SIZE*3;
+                const x=player.px+offsetX;
+                const y=player.py-TILE_SIZE*(i+1);
+                this.rainTelegraph.push({x,y,countdown:60,active:false});
+              }
+            }
+            for (let i=this.rainTelegraph.length-1;i>=0;i--) {
+              const t=this.rainTelegraph[i];
+              t.countdown--;
+              if(!t.active && t.countdown<=0) t.active=true;
+              if(t.active){
+                projectiles.push(new Projectile(
+                  t.x, t.y, 0, 4,
+                  this.touchDamage*0.8, 120, 1, "rain", 300, this
+                ));
+                this.rainTelegraph.splice(i,1);
+              }
+            }
+            break;
 
-      case "tracking":
-        if(!this.telegraph) this.telegraph={x:player.px, y:player.py, countdown:60};
-        else {
-          this.telegraph.countdown--;
-          if(this.telegraph.countdown<=0){
-            const dx=this.telegraph.x-this.px;
-            const dy=this.telegraph.y-this.py;
-            const dist=Math.hypot(dx,dy)||1; // avoid NaN
-            const speed=5;
-            spawnProj((dx/dist)*speed,(dy/dist)*speed,"homing",1.5);
-            this.telegraph=null;
-          }
+          case "tracking":
+            if(!this.telegraph) this.telegraph={x:player.px, y:player.py, countdown:60};
+            else {
+              this.telegraph.countdown--;
+              if(this.telegraph.countdown<=0){
+                const dx=this.telegraph.x-this.px;
+                const dy=this.telegraph.y-this.py;
+                const dist=Math.hypot(dx,dy)||1;
+                const speed=5;
+                spawnProj((dx/dist)*speed,(dy/dist)*speed,"homing",1.5);
+                this.telegraph=null;
+              }
+            }
+            break;
         }
-        break;
+      }
     }
-  }
-}
 
-// ==== SHOOTER/BOSS PROJECTILES ====
-if(this.fireProjectile){
-  if(this.fireCooldown <= 0){
-    const px = player.px + TILE_SIZE/2;
-    const py = player.py + TILE_SIZE/2;
-    const ex = this.px + TILE_SIZE/2;
-    const ey = this.py + TILE_SIZE/2;
-    const dx = px - ex;
-    const dy = py - ey;
-    const dist = Math.hypot(dx, dy) || 1; // safeguard against zero
+    // ==== SHOOTER/BOSS PROJECTILES ====
+    if(this.fireProjectile){
+      if(this.fireCooldown <= 0){
+        const px = player.px + TILE_SIZE/2;
+        const py = player.py + TILE_SIZE/2;
+        const ex = this.px + TILE_SIZE/2;
+        const ey = this.py + TILE_SIZE/2;
+        const dx = px - ex;
+        const dy = py - ey;
+        const dist = Math.hypot(dx, dy) || 1;
 
-    if(dist >= TILE_SIZE){
-      const vx = (dx/dist) * this.projectileSpeed;
-      const vy = (dy/dist) * this.projectileSpeed;
+        if(dist >= TILE_SIZE){
+          const vx = (dx/dist) * this.projectileSpeed;
+          const vy = (dy/dist) * this.projectileSpeed;
 
-      // Offset spawn point slightly forward
-      const ox = (dx/dist) * 10;
-      const oy = (dy/dist) * 10;
+          const ox = (dx/dist) * 10;
+          const oy = (dy/dist) * 10;
 
-      projectiles.push(new Projectile(
-        ex + ox, ey + oy, vx, vy,
-        this.touchDamage*this.projectileDamageMultiplier,
-        90, 1, this.projectileType, this.projectileRange, this
-      ));
-      this.fireCooldown = this.fireCooldownMax;
+          projectiles.push(new Projectile(
+            ex + ox, ey + oy, vx, vy,
+            this.touchDamage*this.projectileDamageMultiplier,
+            90, 1, this.projectileType, this.projectileRange, this
+          ));
+          this.fireCooldown = this.fireCooldownMax;
+        }
+      } else this.fireCooldown--;
     }
-  } else this.fireCooldown--;
-}
+
+    // ==== LATE-GAME BOSS RADIAL BURST ====
+    if (this.isLateBoss) {
+      this.lateBossCooldown--;
+      if (this.lateBossCooldown <= 0) {
+        this.lateBossCooldown = this.lateBossCooldownMax;
+        const centerX = this.px + TILE_SIZE/2;
+        const centerY = this.py + TILE_SIZE/2;
+        const count = this.lateBossProjectiles;
+        const speed = 4;
+
+        for (let i = 0; i < count; i++) {
+          const angle = (2 * Math.PI / count) * i;
+          const vx = Math.cos(angle) * speed;
+          const vy = Math.sin(angle) * speed;
+
+          projectiles.push(new Projectile(
+            centerX, centerY, vx, vy,
+            this.touchDamage * 1.5,
+            120, 1, "boss-burst", 300, this
+          ));
+        }
+      }
+    }
 
   }
 
@@ -307,11 +335,13 @@ export function spawnMiniBoss(x, y, type="classic"){
 }
 
 // === Boss spawner ===
-export function spawnBoss(x, y, type="mega"){
+export function spawnBoss(x, y, type="mega", isLate=false){
   const boss = new Enemy(x, y, 4, "boss");
   boss.isMiniBoss = false;
-  boss.maxHp = 2000; boss.hp = boss.maxHp;
-  boss.touchDamage = 50; boss.speed = 0.5;
+  boss.maxHp = isLate ? 5000 : 2000;
+  boss.hp = boss.maxHp;
+  boss.touchDamage = isLate ? 80 : 50;
+  boss.speed = isLate ? 0.7 : 0.5;
 
   // Boss shooting properties
   boss.fireProjectile = true;
@@ -323,6 +353,8 @@ export function spawnBoss(x, y, type="mega"){
   boss.projectileType = "boss-burst";
 
   boss.specialType = type;
+
+  if (isLate) boss.isLateBoss = true;
 
   return boss;
 }
