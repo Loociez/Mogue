@@ -105,48 +105,90 @@ export class Enemy {
   }
 
   update(player, frameCount, projectiles=[]) {
+    if(!player) return; // safety check
+
     const dx = player.x - this.x;
     const dy = player.y - this.y;
     const distance = Math.abs(dx) + Math.abs(dy);
 
+    // ==== TYPE-SPECIFIC AI ====
+    if(this.type === "ranged-kiter") {
+      if(distance <= 5 && this.fireCooldown <= 0) {
+        const dist = Math.hypot(dx, dy) || 1;
+        const speed = this.projectileSpeed || 3;
+        projectiles.push(new Projectile(
+          this.px + TILE_SIZE/2,
+          this.py + TILE_SIZE/2,
+          (dx/dist)*speed,
+          (dy/dist)*speed,
+          this.touchDamage,
+          90, 1, "arrow", 300, this
+        ));
+        this.fireCooldown = this.fireCooldownMax || 50;
+      }
+
+      if(distance <= 2){
+        const awayX = this.x - Math.sign(dx);
+        const awayY = this.y - Math.sign(dy);
+        if(map.isWalkable(awayX, awayY)){
+          this.path = [{x: awayX, y: awayY}];
+        }
+      } else if(distance > 4){
+        this.path = findPath(this.x, this.y, player.x, player.y, map, true);
+      }
+
+      if(this.fireCooldown > 0) this.fireCooldown--;
+    } 
+    else if(this.type === "ambusher") {
+      if(distance > 6 && this.specialCooldown <= 0){
+        this.x = player.x + Math.floor(Math.random()*5)-2;
+        this.y = player.y + Math.floor(Math.random()*5)-2;
+        this.px = this.x*TILE_SIZE;
+        this.py = this.y*TILE_SIZE;
+        this.specialCooldown = 120;
+      } else this.specialCooldown--;
+    }
+
     // ==== MELEE ATTACK ====
-    if (distance === 1 && this.attackCooldown <= 0) {
+    if(distance === 1 && this.attackCooldown <= 0) {
       player.takeDamage(this.touchDamage);
       this.attackCooldown = 30;
       this.attacking = true;
     } else this.attacking = false;
 
-    if (this.attackCooldown > 0) this.attackCooldown--;
+    if(this.attackCooldown > 0) this.attackCooldown--;
 
-    // ==== PATHFINDING ====
-    this.pathUpdateTicker++;
-    if (this.pathUpdateTicker >= 10 || !this.path || this.path.length===0) {
-      this.path = findPath(this.x, this.y, player.x, player.y, map, true);
-      this.pathUpdateTicker = 0;
-    }
-
-    if (this.path && this.path.length>1) {
-      const nextTile = this.path[1];
-      const tx = nextTile.x*TILE_SIZE;
-      const ty = nextTile.y*TILE_SIZE;
-
-      if (nextTile.x > this.x) this.dir = "right";
-      else if (nextTile.x < this.x) this.dir = "left";
-      else if (nextTile.y > this.y) this.dir = "down";
-      else if (nextTile.y < this.y) this.dir = "up";
-
-      const dist = Math.hypot(tx-this.px, ty-this.py);
-      if (dist>0) {
-        const step = Math.min(this.speed, dist);
-        this.px += ((tx-this.px)/dist)*step;
-        this.py += ((ty-this.py)/dist)*step;
+    // ==== PATHFINDING FOR ALL NON-AMBUSHERS ====
+    if(this.type !== "ambusher") {
+      this.pathUpdateTicker++;
+      if(this.pathUpdateTicker >= 10 || !this.path || this.path.length===0) {
+        this.path = findPath(this.x, this.y, player.x, player.y, map, true);
+        this.pathUpdateTicker = 0;
       }
 
-      if (Math.abs(this.px-tx)<0.1 && Math.abs(this.py-ty)<0.1) {
-        this.x = nextTile.x;
-        this.y = nextTile.y;
-        map.applyTileEffects?.(this, this.x, this.y);
-        this.path.shift();
+      if(this.path && this.path.length>1){
+        const nextTile = this.path[1];
+        const tx = nextTile.x*TILE_SIZE;
+        const ty = nextTile.y*TILE_SIZE;
+
+        if(nextTile.x > this.x) this.dir = "right";
+        else if(nextTile.x < this.x) this.dir = "left";
+        else if(nextTile.y > this.y) this.dir = "down";
+        else if(nextTile.y < this.y) this.dir = "up";
+
+        const dist = Math.hypot(tx-this.px, ty-this.py);
+        if(dist>0){
+          const step = Math.min(this.speed, dist);
+          this.px += ((tx-this.px)/dist)*step;
+          this.py += ((ty-this.py)/dist)*step;
+        }
+
+        if(Math.abs(this.px-tx)<0.1 && Math.abs(this.py-ty)<0.1){
+          this.x = nextTile.x;
+          this.y = nextTile.y;
+          map.applyTileEffects?.(this, this.x, this.y);
+          this.path.shift();
+        }
       }
     }
 
@@ -276,7 +318,6 @@ export class Enemy {
         }
       }
     }
-
   }
 
   draw(ctx) {
@@ -322,11 +363,13 @@ export class Enemy {
 }
 
 // === Mini-boss spawner ===
-export function spawnMiniBoss(x, y, type="classic"){
-  const mb = new Enemy(x, y, 3, "mini-boss");
+export function spawnMiniBoss(x, y, type="classic", spriteIndex=23){
+  const mb = new Enemy(x, y, spriteIndex, "mini-boss");
   mb.isMiniBoss = true;
-  mb.maxHp = 500; mb.hp = mb.maxHp;
-  mb.touchDamage = 20; mb.speed = 0.7;
+  mb.maxHp = 500; 
+  mb.hp = mb.maxHp;
+  mb.touchDamage = 20; 
+  mb.speed = 0.7;
   mb.specialCooldownMax = 120;
   mb.specialCooldown = mb.specialCooldownMax;
   mb.specialType = type;
@@ -335,15 +378,15 @@ export function spawnMiniBoss(x, y, type="classic"){
 }
 
 // === Boss spawner ===
-export function spawnBoss(x, y, type="mega", isLate=false){
-  const boss = new Enemy(x, y, 4, "boss");
+export function spawnBoss(x, y, type="mega", isLate=false, spriteIndex=17){
+  const boss = new Enemy(x, y, spriteIndex, "boss");
   boss.isMiniBoss = false;
   boss.maxHp = isLate ? 5000 : 2000;
   boss.hp = boss.maxHp;
   boss.touchDamage = isLate ? 80 : 50;
   boss.speed = isLate ? 0.7 : 0.5;
 
-  // Boss shooting properties
+  // Shooter/boss projectile settings
   boss.fireProjectile = true;
   boss.fireCooldownMax = 80;
   boss.fireCooldown = 0;
@@ -358,3 +401,4 @@ export function spawnBoss(x, y, type="mega", isLate=false){
 
   return boss;
 }
+
