@@ -94,7 +94,7 @@ function spawnEnemy() {
     let spriteIndex = 0;
     const rand = Math.random();
     if (rand < 0.1) { type = "brute"; spriteIndex = 1; }
-    else if (rand < 0.2) { type = "shooter"; spriteIndex = 2; }
+    else if (rand < 0.2) { type = "shooter"; spriteIndex = 12; }
     else if (rand < 0.3) { type = "fast"; spriteIndex = 3; }
     else if (rand < 0.4) { type = "tank"; spriteIndex = 4; }
     else if (rand < 0.5) { type = "spitter"; spriteIndex = 5; }
@@ -387,15 +387,34 @@ for (let i = projectiles.length - 1; i >= 0; i--) {
   }
 
   if (player.hp <= 0 && !gameOver) {
-    gameOver = true;
-    lastSessionStats = {
-      level: player.level,
-      gold: player.gold,
-      time: Math.floor(frameCount / 60),
-    };
-	// Show the HTML overlay
-  document.getElementById("deathOverlay").style.display = "block";
-  }
+  gameOver = true;
+
+  // Save last session stats
+  lastSessionStats = {
+    level: player.level,
+    gold: player.gold,
+    time: Math.floor(frameCount / 60),
+  };
+
+  // Populate overlay with stats + link
+  const overlay = document.getElementById("deathOverlay");
+  overlay.innerHTML = `
+    <h2>You Died</h2>
+    <p>Level: ${lastSessionStats.level}</p>
+    <p>Gold: ${lastSessionStats.gold}</p>
+    <p>Time: ${lastSessionStats.time}s</p>
+    <p><a href="https://mirageonlineclassic.com" target="_blank">Mirage Online Classic - Visit the pixel MMORPG!</a></p>
+    <button id="restartBtn">Restart</button>
+  `;
+  overlay.style.display = "block";
+
+  // Restart button handler
+  document.getElementById("restartBtn").onclick = () => {
+    overlay.style.display = "none";
+    showCharacterSelection(); // reset game
+  };
+}
+
 
   // ==== CAMERA UPDATE ====
   if (player) {
@@ -492,12 +511,12 @@ ctx.restore();
 
   ctx.restore(); // restore camera & shake
 
-  if (gameOver) {
-  // Show the HTML overlay instead of drawing on canvas
-  document.getElementById("deathOverlay").style.display = "block";
-} else if (paused && !menuActive) {
-  drawPauseScreen();
+  if (gameOver || (paused && !menuActive)) {
+  // Do not draw the canvas overlay if game is over or paused
+  if (!paused) return; // skip canvas drawing when game over
+  if (paused && !menuActive) drawPauseScreen();
 }
+
 
 }
 
