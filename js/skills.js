@@ -86,14 +86,6 @@ export function applyRicochet(proj) {
   }
 }
 
-// === Blink ability ===
-export function blink(player, distance = 5) {
-  // Simple dash in current facing direction
-  player.px += Math.cos(player.rotation) * distance;
-  player.py += Math.sin(player.rotation) * distance;
-  if (player.blinkCooldown) player.blinkCooldownTimer = player.blinkCooldown;
-}
-
 // === Phase Strike (ignores armor) ===
 export function phaseStrike(player, target) {
   if (!target) return;
@@ -116,7 +108,14 @@ export function attachSkills(skillTree) {
           skill.apply = (player) => { player.ricochet = 1; };
           break;
         case "speed_10": // Blink
-          skill.apply = (player) => { player.blinkDistance = 5; player.blinkCooldown = 10; };
+          skill.apply = (player) => { 
+            player.blinkDistance = 150;   // pixels
+            player.blinkCooldown = 180;   // frames (3s at 60fps)
+            if (!Array.isArray(player.unlockedSkills)) player.unlockedSkills = [];
+            if (!player.unlockedSkills.includes("blink")) {
+              player.unlockedSkills.push("blink");
+            }
+          };
           break;
         case "speed_12": // Phase Strike
           skill.apply = (player) => { player.phaseStrike = 0.25; };

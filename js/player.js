@@ -58,6 +58,9 @@ export class Player {
     // === Life Leech ===
     this.lifeLeech = 0.1; // 0 = off, 0.2 = 20% of damage dealt heals
 
+    // === Blink Trail ===
+    this.blinkTrail = [];
+
     // Keyboard events
     window.addEventListener("keydown", e => { this.inputKeys[e.key.toLowerCase()] = true; });
     window.addEventListener("keyup", e => { this.inputKeys[e.key.toLowerCase()] = false; });
@@ -161,6 +164,20 @@ export class Player {
   }
 
   keyHeld(key) { return !!this.inputKeys[key]; }
+
+  // === Blink Trail Helper ===
+  createBlinkTrail(oldX, oldY, newX, newY) {
+    const steps = 5;
+    for (let i = 0; i < steps; i++) {
+      const t = i / steps;
+      this.blinkTrail.push({
+        x: oldX + (newX - oldX) * t,
+        y: oldY + (newY - oldY) * t,
+        alpha: 1 - t * 0.8,
+        life: 15
+      });
+    }
+  }
 
   update(projectiles = [], enemies = []) {
     const now = performance.now();
@@ -275,6 +292,10 @@ export class Player {
     if (this.py > targetPy) this.py = Math.max(this.py - this.speed, targetPy);
 
     this.updateAnimation(targetPx, targetPy);
+
+    // --- Update blink trail ---
+    this.blinkTrail.forEach(t => t.life--);
+    this.blinkTrail = this.blinkTrail.filter(t => t.life > 0);
   }
 
   // --- Life Leech Helper ---
@@ -317,6 +338,18 @@ export class Player {
     const sx = (totalFrameIndex % tilesPerRow) * TILE_SIZE;
     const sy = Math.floor(totalFrameIndex / tilesPerRow) * TILE_SIZE;
 
+    // --- Draw blink trail ---
+    for (let t of this.blinkTrail) {
+      ctx.globalAlpha = t.alpha * (t.life / 15);
+      ctx.drawImage(
+        this.spriteSheet,
+        sx, sy, TILE_SIZE, TILE_SIZE,
+        t.x, t.y, TILE_SIZE, TILE_SIZE
+      );
+    }
+    ctx.globalAlpha = 1;
+
+    // --- Draw player ---
     ctx.drawImage(this.spriteSheet, sx, sy, TILE_SIZE, TILE_SIZE, this.px, this.py, TILE_SIZE, TILE_SIZE);
 
     ctx.fillStyle = "red";
