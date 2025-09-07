@@ -41,7 +41,7 @@ export class Player {
     this.spriteSheet.src = "assets/player.png";
     this.frame = 0;
     this.frameTicker = 0;
-    this.frameSpeed = 5;
+    this.frameSpeed = 4;
 
     // Misc
     this.contactIFrames = 0;
@@ -52,11 +52,11 @@ export class Player {
     this.attackPressed = false;
 
     // === Crit system ===
-    this.critChance = 0.2;       
+    this.critChance = 0.05;       
     this.critMultiplier = 2.0; 
 
     // === Life Leech ===
-    this.lifeLeech = 0.2; // 0 = off, 0.2 = 20% of damage dealt heals
+    this.lifeLeech = 0.1; // 0 = off, 0.2 = 20% of damage dealt heals
 
     // Keyboard events
     window.addEventListener("keydown", e => { this.inputKeys[e.key.toLowerCase()] = true; });

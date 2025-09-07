@@ -1,15 +1,8 @@
 export class Projectile {
   constructor(
-    x,
-    y,
-    vx,
-    vy,
-    damage,
-    life = 30,
-    pierce = 1,
-    type = "normal",
-    maxDistance = null,
-    owner = null
+    x, y, vx, vy, damage,
+    life = 30, pierce = 1, type = "normal",
+    maxDistance = null, owner = null
   ) {
     this.x = x;
     this.y = y;
@@ -17,89 +10,80 @@ export class Projectile {
     this.vy = vy;
     this.damage = damage;
     this.life = life;
-    this.pierce = pierce; // number of enemies it can still hit
+    this.pierce = pierce;
     this.type = type;
-
-    this.owner = owner; // reference to whoever spawned this projectile
+    this.owner = owner;
 
     // Distance tracking
     this.startX = x;
     this.startY = y;
     this.maxDistance = maxDistance;
 
-    // Delay collision with owner for a short time (avoids instant self-hit)
+    // Delay collision with owner
     this.ignoreOwnerFrames = 5;
 
-    // Crit-related fields
+    // Crit
     this.color = null;
     this.critText = null;
     this.critYOffset = 0;
     this.critAlpha = 1;
 
+    // Optional hooks
+    this.onExpire = null; // called when life <= 0
+    this.onHit = null;    // called when hitting an enemy
+
     switch (type) {
-      case "bouncing":
-        this.bounces = 3;
-        this.radius = 4;
-        break;
-      case "homing":
-        this.speed = Math.hypot(vx, vy);
-        this.radius = 4;
-        break;
-      case "heavy":
-        this.radius = 6;
-        break;
-      case "spread":
-      default:
-        this.radius = 4;
+      case "bouncing": this.bounces = 3; this.radius = 4; break;
+      case "homing": this.speed = Math.hypot(vx, vy); this.radius = 4; break;
+      case "heavy": this.radius = 6; break;
+      default: this.radius = 4;
     }
   }
 
-  update(enemies = [], canvas = { width: 800, height: 600 }) {
+  update(enemies = [], canvas = { width: 800, height: 600 }, projectiles = []) {
     // Homing logic
     if (this.type === "homing" && enemies.length > 0) {
-      let closest = null;
-      let minDist = Infinity;
+      let closest = null, minDist = Infinity;
       for (const e of enemies) {
         if (e === this.owner) continue;
         const dist = Math.hypot(e.px + 16 - this.x, e.py + 16 - this.y);
-        if (dist < minDist) {
-          minDist = dist;
-          closest = e;
-        }
+        if (dist < minDist) { minDist = dist; closest = e; }
       }
       if (closest) {
-        const angle = Math.atan2(
-          closest.py + 16 - this.y,
-          closest.px + 16 - this.x
-        );
+        const angle = Math.atan2(closest.py + 16 - this.y, closest.px + 16 - this.x);
         this.vx = Math.cos(angle) * this.speed;
         this.vy = Math.sin(angle) * this.speed;
       }
     }
 
+    // Move projectile
     this.x += this.vx;
     this.y += this.vy;
     this.life--;
-
     if (this.ignoreOwnerFrames > 0) this.ignoreOwnerFrames--;
 
+    // Max distance
     if (this.maxDistance !== null) {
       const dx = this.x - this.startX;
       const dy = this.y - this.startY;
       if (Math.hypot(dx, dy) >= this.maxDistance) this.life = 0;
     }
 
+    // Bouncing logic
     if (this.type === "bouncing") {
-      if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
-        this.vx *= -1;
-        this.bounces--;
-      }
-      if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
-        this.vy *= -1;
-        this.bounces--;
+      if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) { this.vx *= -1; this.bounces--; }
+      if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) { this.vy *= -1; this.bounces--; }
+    }
+
+    // Explosions on expiration
+    if (this.life <= 0) {
+      if (this.owner?.customProjectile && this.onExpire) {
+        this.onExpire(projectiles); // pass projectiles array
+        this.onExpire = null;
       }
     }
 
+    // Crit animation
     if (this.critText) {
       this.critYOffset -= 0.5;
       this.critAlpha -= 0.02;
@@ -118,17 +102,9 @@ export class Projectile {
     if (this.owner?.type === "boss" || this.owner?.isMiniBoss) ctx.fillStyle = "#ff6600";
     else if (this.color) ctx.fillStyle = this.color;
     else {
-      const colors = {
-        normal: "#fff",
-        spread: "#ff0",
-        bouncing: "#0ff",
-        homing: "#f0f",
-        heavy: "#f33",
-        rain: "#00f"
-      };
+      const colors = { normal:"#fff", spread:"#ff0", bouncing:"#0ff", homing:"#f0f", heavy:"#f33", rain:"#00f" };
       ctx.fillStyle = colors[this.type] || "#fff";
     }
-
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     ctx.fill();
@@ -146,18 +122,33 @@ export class Projectile {
     return this.pierce > 0;
   }
 
-  dealDamage(target) {
+  dealDamage(target, projectiles = []) {
     if (!this.canDamage(target)) return;
 
     if (typeof target.takeDamage === "function") {
       target.takeDamage(this.damage);
 
-      // --- Life Leech ---
-      if (this.owner?.healFromDamage) {
-        this.owner.healFromDamage(this.damage);
-      }
+      // Life Leech
+      if (this.owner?.healFromDamage) this.owner.healFromDamage(this.damage);
 
       this.pierce--;
+
+      // Delayed Explosion
+      if (this.owner?.delayedExplosion) {
+        setTimeout(() => {
+          if (this.isAlive()) return;
+          if (this.onExpire) this.onExpire(projectiles);
+        }, this.owner.delayedExplosionTime ?? 60);
+      }
+
+      // Exploding Shot on hit
+      if (this.owner?.explodingShot && this.onExpire) {
+        this.onExpire(projectiles);
+        this.onExpire = null;
+      }
+
+      // Custom onHit hook
+      if (this.onHit) this.onHit(target, projectiles);
     }
   }
 }
