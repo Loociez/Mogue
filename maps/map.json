@@ -1386,7 +1386,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 32,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -1397,7 +1397,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 51,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -1408,7 +1408,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 32,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -1740,7 +1740,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 32,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -1751,7 +1751,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 32,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -1762,7 +1762,7 @@
           }
         },
         {
-          "tileId": 568,
+          "tileId": 32,
           "tileset": 0,
           "attributes": {
             "walkable": true,
@@ -3422,8 +3422,8 @@
           }
         },
         {
-          "tileId": 366,
-          "tileset": 1,
+          "tileId": 50,
+          "tileset": 0,
           "attributes": {
             "walkable": true,
             "damage": false,
@@ -9630,7 +9630,7 @@
               "color": "#e2d222",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.3329236706011573
+              "_last": 0.2762361932420255
             }
           }
         },
@@ -9649,7 +9649,7 @@
               "color": "#e2d222",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.3562821690335916
+              "_last": 0.2674152311276237
             }
           }
         },
@@ -9894,7 +9894,17 @@
             "blocker": false
           }
         },
-        null,
+        {
+          "tileId": 592,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null
       ],
       [
@@ -9927,7 +9937,17 @@
         },
         null,
         null,
-        null,
+        {
+          "tileId": 592,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         {
           "tileId": 275,
@@ -10391,7 +10411,17 @@
         null,
         null,
         null,
-        null
+        {
+          "tileId": 598,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        }
       ],
       [
         null,
@@ -10494,7 +10524,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.35
+              "_last": 0.4119181427654848
             }
           }
         },
@@ -10563,7 +10593,7 @@
               "color": "#cc4a33",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.28444862037265034
+              "_last": 0.28806964058994455
             }
           }
         },
@@ -10807,7 +10837,17 @@
           }
         },
         null,
-        null,
+        {
+          "tileId": 592,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -10871,7 +10911,7 @@
               "color": "#a53f1d",
               "brightness": 0.5,
               "flicker": false,
-              "_last": 0.38610293011677294
+              "_last": 0.4713172793871582
             }
           }
         },
@@ -11408,7 +11448,17 @@
         null,
         null,
         null,
-        null,
+        {
+          "tileId": 856,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null
@@ -11439,7 +11489,17 @@
         null,
         null,
         null,
-        null,
+        {
+          "tileId": 592,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -12180,7 +12240,7 @@
               "color": "#e1ff4d",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.4224122072692475
+              "_last": 0.5
             }
           }
         },
@@ -12373,11 +12433,51 @@
             "blocker": true
           }
         },
+        {
+          "tileId": 446,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 444,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 444,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 445,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         {
           "tileId": 111,
@@ -12392,7 +12492,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.3710333911074595
+              "_last": 0.38781481675403984
             }
           }
         },
@@ -12633,11 +12733,61 @@
             "blocker": true
           }
         },
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 453,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 495,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 451,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 451,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 452,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null,
@@ -12833,7 +12983,7 @@
               "color": "#e2d222",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.302195314495299
+              "_last": 0.3554741389570471
             }
           }
         },
@@ -12855,7 +13005,7 @@
               "color": "#e2d222",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.26599999999999996
+              "_last": 0.35017337514330543
             }
           }
         },
@@ -13269,7 +13419,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.48846160092464996
+              "_last": 0.4424630164060745
             }
           }
         },
@@ -13301,7 +13451,7 @@
               "color": "#cc4a33",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.30545517114999077
+              "_last": 0.30180365369474216
             }
           }
         },
@@ -13904,7 +14054,7 @@
               "color": "#e1ff4d",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.4503916977161712
+              "_last": 0.35025720046055164
             }
           }
         },
@@ -13982,7 +14132,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.35869094717204325
+              "_last": 0.41971546009962657
             }
           }
         },
@@ -14040,6 +14190,17 @@
     ],
     "object2": [
       [
+        {
+          "tileId": 753,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14053,6 +14214,28 @@
         null,
         null,
         null,
+        {
+          "tileId": 465,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 465,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14065,10 +14248,17 @@
         null,
         null,
         null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 465,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null
@@ -14089,6 +14279,17 @@
         null,
         null,
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14101,7 +14302,80 @@
         null,
         null,
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 746,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14116,41 +14390,17 @@
         null,
         null,
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 730,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14189,8 +14439,8 @@
           }
         },
         {
-          "tileId": 235,
-          "tileset": 8,
+          "tileId": 473,
+          "tileset": 0,
           "attributes": {
             "walkable": true,
             "damage": false,
@@ -14200,15 +14450,65 @@
           }
         },
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14287,7 +14587,17 @@
         null,
         null,
         null,
-        null
+        {
+          "tileId": 746,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        }
       ],
       [
         null,
@@ -14463,9 +14773,315 @@
         null,
         null,
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 745,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 730,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        {
+          "tileId": 745,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        {
+          "tileId": 465,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14527,6 +15143,223 @@
         null,
         null,
         null,
+        {
+          "tileId": 465,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 465,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 465,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        }
+      ],
+      [
+        null,
+        null,
+        {
+          "tileId": 745,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 465,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        }
+      ],
+      [
         null,
         null,
         null,
@@ -14539,12 +15372,157 @@
         null,
         null,
         null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        {
+          "tileId": 772,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        null,
+        null,
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
         null,
         null,
         null,
+        null,
+        {
+          "tileId": 923,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 843,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 923,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        {
+          "tileId": 699,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 923,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null
@@ -14562,6 +15540,35 @@
         null,
         null,
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14570,6 +15577,111 @@
         null,
         null,
         null,
+        null,
+        null,
+        null
+      ],
+      [
+        {
+          "tileId": 465,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 466,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14584,6 +15696,39 @@
         null
       ],
       [
+        {
+          "tileId": 35,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 36,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 37,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14593,6 +15738,17 @@
         null,
         null,
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14600,17 +15756,43 @@
         null,
         null,
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 730,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14618,6 +15800,50 @@
         null
       ],
       [
+        {
+          "tileId": 4,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 5,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 6,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 7,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14625,33 +15851,152 @@
         null,
         null,
         null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 473,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 971,
+          "tileset": 0,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null
       ],
       [
+        {
+          "tileId": 13,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 14,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 15,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14677,353 +16022,298 @@
         null,
         null,
         null,
+        {
+          "tileId": 988,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 989,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 990,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 991,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        }
+      ],
+      [
+        {
+          "tileId": 20,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 21,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 22,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 23,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        {
+          "tileId": 62,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
         null,
         null,
         null,
-        null
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 995,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 996,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 997,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 998,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        }
       ],
       [
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
+        {
+          "tileId": 29,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 30,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 31,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        {
+          "tileId": 780,
+          "tileset": 1,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        {
+          "tileId": 62,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": 1002,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 1003,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 1004,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 1005,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        }
       ]
     ],
     "object2Anim": [
@@ -15373,7 +16663,20 @@
         },
         null,
         null,
-        null,
+        {
+          "tileId": [
+            795,
+            795
+          ],
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null,
@@ -15761,6 +17064,20 @@
         null,
         null,
         null,
+        {
+          "tileId": [
+            773,
+            773
+          ],
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null,
@@ -15771,6 +17088,52 @@
         null,
         null,
         null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        {
+          "tileId": [
+            833,
+            833
+          ],
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null,
@@ -15921,41 +17284,20 @@
         null,
         null,
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": [
+            828,
+            828
+          ],
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null,
