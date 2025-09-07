@@ -161,7 +161,10 @@ export class Player {
     this.queueIndex = 0;
     this.lastDir = null;
     this.dir = "down";
-  }
+    this.fireCooldown = 0; // <- add this
+    this.attacking = false; // <- add this
+}
+
 
   keyHeld(key) { return !!this.inputKeys[key]; }
 
