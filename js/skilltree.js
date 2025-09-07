@@ -4,7 +4,6 @@ import {
   applyRicochet
 } from "./skills.js";
 
-
 export const skillTree = {
   root: [
     { 
@@ -94,6 +93,7 @@ export const skillTree = {
       if(lvl > 0) { 
           player.energyShield = 50; 
           player.energyShieldCooldown = 30; 
+          player.unlockedSkills ??= [];
           if(!player.unlockedSkills.includes("energyShield")) player.unlockedSkills.push("energyShield");
       } 
   } }
@@ -102,6 +102,7 @@ export const skillTree = {
   { id: "defense_5", name: "Stoneform", desc: "Temporary damage immunity", requires: "defense_4", branch: "middle", level: 0, maxLevel: 3, apply: (player, lvl) => { 
       if(lvl > 0) {
           player.stoneform = true; 
+          player.unlockedSkills ??= [];
           if(!player.unlockedSkills.includes("stoneform")) player.unlockedSkills.push("stoneform");
       } 
   } }
@@ -110,6 +111,7 @@ export const skillTree = {
   { id: "defense_6", name: "Magnet", desc: "Pulls nearby pickups", requires: "defense_5", branch: "middle", level: 0, maxLevel: 1, apply: (player, lvl) => { 
       if(lvl > 0) { 
           player.magnet = true; 
+          player.unlockedSkills ??= [];
           if(!player.unlockedSkills.includes("magnet")) player.unlockedSkills.push("magnet");
       } 
   } }
@@ -124,6 +126,7 @@ export const skillTree = {
       if(lvl > 0) {
           player.blinkDistance = 5; 
           player.blinkCooldown = 10; 
+          player.unlockedSkills ??= [];
           if(!player.unlockedSkills.includes("blink")) player.unlockedSkills.push("blink");
       } 
   } }
@@ -132,6 +135,7 @@ export const skillTree = {
   { id: "speed_4", name: "Phase Strike", desc: "Attacks ignore 25% armor", requires: "speed_3", branch: "right", level: 0, maxLevel: 1, apply: (player, lvl) => { 
       if(lvl > 0) {
           player.phaseStrike = 0.25; 
+          player.unlockedSkills ??= [];
           if(!player.unlockedSkills.includes("phaseStrike")) player.unlockedSkills.push("phaseStrike");
       } 
   } }
@@ -155,6 +159,48 @@ export const skillTree = {
   { id: "uber_speed_2", name: "Uber Storm", desc: "Rapid Fire fires twice", requires: "speed_8", branch: "right", level: 0, maxLevel: 3, apply: (player, lvl) => { if(lvl>0) player.rapidFire = true; } }
 ]
 
-
   }
 };
+
+export function resetSkillTree(player) {
+    if (!player) {
+        console.warn("resetSkillTree called with undefined player!");
+        return; // early exit
+    }
+
+    // Reset skill levels
+    skillTree.root.forEach(node => node.level = 0);
+    Object.values(skillTree.nodes).forEach(branch => {
+        branch.forEach(node => node.level = 0);
+    });
+
+    // Reset player stats safely
+    player.damage = player.baseDamage ?? 0;      // Use nullish coalescing
+    player.maxHP = player.baseMaxHP ?? 100;
+    player.HP = player.maxHP;
+    player.moveSpeed = player.baseMoveSpeed ?? 1;
+    player.pierce = 0;
+    player.critChance = 0;
+    player.explosiveShot = false;
+    player.leechPercent = 0;
+    player.armorPierce = 0;
+    player.multishot = 0;
+    player.berserkerRage = 0;
+    player.rapidFire = false;
+    player.energyShield = 0;
+    player.energyShieldCooldown = 0;
+    player.stoneform = false;
+    player.magnet = false;
+    player.dodge = 0;
+    player.blinkDistance = 0;
+    player.blinkCooldown = 0;
+    player.phaseStrike = 0;
+    player.projectileSpeed = 1;
+    player.adrenaline = 0;
+    player.lightningReflexes = false;
+    player.dashCharges = 0;
+
+    if (player.unlockedSkills) player.unlockedSkills.length = 0;
+}
+
+

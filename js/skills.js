@@ -1,6 +1,8 @@
 // skills.js
 import { TILE_SIZE } from "./map.js";
 import { Projectile } from "./projectile.js";
+import { skillTree } from "./skilltree.js";
+
 
 // === Custom projectile skills ===
 export function createClusterProjectile(player, targetX, targetY) {
@@ -158,12 +160,15 @@ export function unlockSkill(player, skillId, skillTree) {
   }
 }
 
-export function applyAllSkills(player, skillTree) {
-  for (const category of Object.values(skillTree.nodes)) {
-    for (const skill of category) {
-      if (skill.unlocked && typeof skill.apply === "function") {
-        skill.apply(player);
-      }
+export function applyAllSkills(player) {
+    if (!skillTree || !skillTree.nodes) {
+        console.warn("skillTree is undefined!");
+        return;
     }
-  }
+    Object.values(skillTree.nodes).forEach(branch => {
+        branch.forEach(node => {
+            if (node.level > 0) node.apply(player, node.level);
+        });
+    });
 }
+
