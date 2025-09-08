@@ -9630,7 +9630,7 @@
               "color": "#e2d222",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.3473845214015199
+              "_last": 0.3049817885036339
             }
           }
         },
@@ -9649,7 +9649,7 @@
               "color": "#e2d222",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.3508398219432384
+              "_last": 0.36540582878078376
             }
           }
         },
@@ -9881,17 +9881,27 @@
         null,
         null,
         null,
-        null,
-        null,
         {
-          "tileId": 779,
-          "tileset": 1,
+          "tileId": 591,
+          "tileset": 0,
           "attributes": {
-            "walkable": true,
+            "walkable": false,
             "damage": false,
             "trigger": false,
             "healing": false,
-            "blocker": false
+            "blocker": true
+          }
+        },
+        null,
+        {
+          "tileId": 599,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
           }
         },
         {
@@ -10003,13 +10013,73 @@
             "blocker": true
           }
         },
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
@@ -10097,7 +10167,17 @@
             "blocker": true
           }
         },
-        null,
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         {
           "tileId": 970,
           "tileset": 0,
@@ -10110,17 +10190,7 @@
           }
         },
         null,
-        {
-          "tileId": 122,
-          "tileset": 10,
-          "attributes": {
-            "walkable": false,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": true
-          }
-        },
+        null,
         null,
         {
           "tileId": 262,
@@ -10133,7 +10203,17 @@
             "blocker": true
           }
         },
-        null
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
@@ -10261,7 +10341,17 @@
             "blocker": true
           }
         },
-        null,
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         {
           "tileId": 964,
           "tileset": 0,
@@ -10274,7 +10364,17 @@
           }
         },
         null,
-        null,
+        {
+          "tileId": 576,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         {
           "tileId": 865,
@@ -10287,7 +10387,17 @@
             "blocker": false
           }
         },
-        null
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
@@ -10405,21 +10515,41 @@
             "blocker": false
           }
         },
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
         {
-          "tileId": 598,
+          "tileId": 32,
           "tileset": 0,
           "attributes": {
-            "walkable": true,
+            "walkable": false,
             "damage": false,
             "trigger": false,
             "healing": false,
-            "blocker": false
+            "blocker": true
+          }
+        },
+        null,
+        null,
+        {
+          "tileId": 584,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        null,
+        null,
+        {
+          "tileId": 50,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
           }
         }
       ],
@@ -10436,7 +10566,17 @@
             "blocker": true
           }
         },
-        null,
+        {
+          "tileId": 48,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         {
           "tileId": 437,
           "tileset": 0,
@@ -10524,7 +10664,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.47945171974466566
+              "_last": 0.44526153383639033
             }
           }
         },
@@ -10555,9 +10695,8 @@
         null,
         null,
         null,
-        null,
         {
-          "tileId": 838,
+          "tileId": 32,
           "tileset": 0,
           "attributes": {
             "walkable": false,
@@ -10568,17 +10707,8 @@
           }
         },
         null,
-        {
-          "tileId": 275,
-          "tileset": 1,
-          "attributes": {
-            "walkable": true,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": false
-          }
-        },
+        null,
+        null,
         null,
         {
           "tileId": 150,
@@ -10593,11 +10723,21 @@
               "color": "#cc4a33",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.38
+              "_last": 0.3593718062396648
             }
           }
         },
-        null
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
@@ -10685,9 +10825,30 @@
           }
         },
         null,
-        null,
         {
-          "tileId": 845,
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 32,
           "tileset": 0,
           "attributes": {
             "walkable": false,
@@ -10698,10 +10859,39 @@
           }
         },
         null,
-        null,
-        null,
-        null,
-        null
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 32,
+          "tileset": 0,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
@@ -10911,7 +11101,7 @@
               "color": "#a53f1d",
               "brightness": 0.5,
               "flicker": false,
-              "_last": 0.35
+              "_last": 0.4387255829231613
             }
           }
         },
@@ -12240,7 +12430,7 @@
               "color": "#e1ff4d",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.48812396562341426
+              "_last": 0.36328629422410297
             }
           }
         },
@@ -12492,7 +12682,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.4861225562276477
+              "_last": 0.42546409473535896
             }
           }
         },
@@ -12983,7 +13173,7 @@
               "color": "#e2d222",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.35434060541014184
+              "_last": 0.33864869847920603
             }
           }
         },
@@ -13005,7 +13195,7 @@
               "color": "#e2d222",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.38
+              "_last": 0.3244744887960724
             }
           }
         },
@@ -13158,20 +13348,7 @@
             "blocker": true
           }
         },
-        {
-          "tileId": [
-            699,
-            699
-          ],
-          "tileset": 0,
-          "attributes": {
-            "walkable": false,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": false
-          }
-        },
+        null,
         null,
         null,
         null,
@@ -13419,7 +13596,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.4804976746112332
+              "_last": 0.48205755348207163
             }
           }
         },
@@ -13451,7 +13628,7 @@
               "color": "#cc4a33",
               "brightness": 0.38,
               "flicker": true,
-              "_last": 0.35808117839294545
+              "_last": 0.329386852666044
             }
           }
         },
@@ -14054,7 +14231,7 @@
               "color": "#e1ff4d",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.40437376424308874
+              "_last": 0.4065496133740968
             }
           }
         },
@@ -14132,7 +14309,7 @@
               "color": "#fcff61",
               "brightness": 0.5,
               "flicker": true,
-              "_last": 0.39225665788306924
+              "_last": 0.5
             }
           }
         },
@@ -14384,7 +14561,17 @@
       [
         null,
         null,
-        null,
+        {
+          "tileId": 156,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14509,9 +14696,39 @@
             "blocker": false
           }
         },
-        null,
-        null,
-        null,
+        {
+          "tileId": 516,
+          "tileset": 8,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 570,
+          "tileset": 8,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 541,
+          "tileset": 8,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null
       ],
@@ -14581,28 +14798,88 @@
         null,
         null,
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
         {
-          "tileId": 746,
-          "tileset": 0,
+          "tileId": 513,
+          "tileset": 8,
           "attributes": {
-            "walkable": true,
+            "walkable": false,
             "damage": false,
             "trigger": false,
             "healing": false,
-            "blocker": false
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 534,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 522,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        null,
+        {
+          "tileId": 513,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 534,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 515,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
           }
         }
       ],
       [
         null,
         null,
-        null,
+        {
+          "tileId": 127,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14665,17 +14942,47 @@
         null,
         null,
         null,
+        {
+          "tileId": 564,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null,
         null,
         null,
-        null,
-        null
+        {
+          "tileId": 562,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
-        null,
+        {
+          "tileId": 871,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -14749,13 +15056,33 @@
             "blocker": true
           }
         },
+        {
+          "tileId": 564,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null,
         null,
         null,
-        null,
-        null
+        {
+          "tileId": 562,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
@@ -14793,7 +15120,17 @@
         null,
         null,
         null,
-        null,
+        {
+          "tileId": 564,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         {
           "tileId": 745,
@@ -14809,12 +15146,38 @@
         null,
         null,
         null,
-        null
+        {
+          "tileId": 562,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
         null,
-        null,
+        {
+          "tileId": 342,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true,
+            "light": {
+              "color": "#f0ff7a",
+              "brightness": 0.5,
+              "flicker": false,
+              "_last": 0.3668263452967376
+            }
+          }
+        },
         null,
         null,
         null,
@@ -14857,13 +15220,33 @@
         null,
         null,
         null,
+        {
+          "tileId": 564,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null,
         null,
         null,
-        null,
-        null
+        {
+          "tileId": 562,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
@@ -14951,13 +15334,83 @@
             "blocker": false
           }
         },
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
+        {
+          "tileId": 527,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 534,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 534,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 570,
+          "tileset": 8,
+          "attributes": {
+            "walkable": true,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 534,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 534,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
+        {
+          "tileId": 534,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        }
       ],
       [
         null,
@@ -15099,6 +15552,17 @@
       ],
       [
         null,
+        {
+          "tileId": 156,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -15106,8 +15570,17 @@
         null,
         null,
         null,
-        null,
-        null,
+        {
+          "tileId": 100,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -15142,7 +15615,23 @@
         null,
         null,
         null,
-        null,
+        {
+          "tileId": 342,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true,
+            "light": {
+              "color": "#f0ff7a",
+              "brightness": 0.5,
+              "flicker": false,
+              "_last": 0.439987484955019
+            }
+          }
+        },
         {
           "tileId": 465,
           "tileset": 0,
@@ -15166,8 +15655,28 @@
           }
         },
         null,
-        null,
-        null,
+        {
+          "tileId": 1021,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 1022,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         {
           "tileId": 465,
@@ -15253,17 +15762,7 @@
           }
         },
         null,
-        {
-          "tileId": 465,
-          "tileset": 0,
-          "attributes": {
-            "walkable": true,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": false
-          }
-        }
+        null
       ],
       [
         null,
@@ -15300,9 +15799,39 @@
         },
         null,
         null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 1007,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 997,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 990,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
@@ -15347,17 +15876,7 @@
             "blocker": false
           }
         },
-        {
-          "tileId": 465,
-          "tileset": 0,
-          "attributes": {
-            "walkable": true,
-            "damage": false,
-            "trigger": false,
-            "healing": false,
-            "blocker": false
-          }
-        }
+        null
       ],
       [
         null,
@@ -15372,22 +15891,52 @@
         null,
         null,
         null,
+        null,
+        null,
         {
-          "tileId": 466,
-          "tileset": 0,
+          "tileId": 1002,
+          "tileset": 7,
           "attributes": {
-            "walkable": true,
+            "walkable": false,
             "damage": false,
             "trigger": false,
             "healing": false,
             "blocker": false
           }
         },
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 996,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 997,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 989,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         {
           "tileId": 473,
@@ -15458,16 +16007,66 @@
         },
         null,
         null,
+        {
+          "tileId": 1014,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 1016,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 1012,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 1018,
+          "tileset": 7,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         null,
         null,
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 156,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null,
         null,
         {
@@ -15510,6 +16109,14 @@
         null,
         null,
         null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
         {
           "tileId": 473,
           "tileset": 0,
@@ -15529,10 +16136,10 @@
         null,
         null,
         {
-          "tileId": 473,
-          "tileset": 0,
+          "tileId": 100,
+          "tileset": 8,
           "attributes": {
-            "walkable": true,
+            "walkable": false,
             "damage": false,
             "trigger": false,
             "healing": false,
@@ -15540,15 +16147,17 @@
           }
         },
         null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
+        {
+          "tileId": 127,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
         null
       ],
       [
@@ -15741,7 +16350,17 @@
       ],
       [
         null,
-        null,
+        {
+          "tileId": 538,
+          "tileset": 8,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": true
+          }
+        },
         null,
         null,
         null,
@@ -15883,9 +16502,39 @@
         null,
         null,
         null,
-        null,
-        null,
-        null
+        {
+          "tileId": 358,
+          "tileset": 9,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 359,
+          "tileset": 9,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 425,
+          "tileset": 9,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        }
       ],
       [
         null,
@@ -15918,8 +16567,28 @@
         null,
         null,
         null,
-        null,
-        null
+        {
+          "tileId": 402,
+          "tileset": 9,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        },
+        {
+          "tileId": 398,
+          "tileset": 9,
+          "attributes": {
+            "walkable": false,
+            "damage": false,
+            "trigger": false,
+            "healing": false,
+            "blocker": false
+          }
+        }
       ],
       [
         null,
@@ -16261,7 +16930,7 @@
               "color": "#f92424",
               "brightness": 0.28,
               "flicker": true,
-              "_last": 0.2287786657580401
+              "_last": 0.2078638181248898
             }
           }
         },
@@ -16281,7 +16950,7 @@
               "color": "#f92424",
               "brightness": 0.28,
               "flicker": true,
-              "_last": 0.28
+              "_last": 0.21391055144713436
             }
           }
         },
@@ -16301,7 +16970,7 @@
               "color": "#f92424",
               "brightness": 0.28,
               "flicker": true,
-              "_last": 0.2548581500367571
+              "_last": 0.2768323012312622
             }
           }
         },
@@ -16321,7 +16990,7 @@
               "color": "#f92424",
               "brightness": 0.28,
               "flicker": true,
-              "_last": 0.24344344459711972
+              "_last": 0.26977951755283797
             }
           }
         },
@@ -17044,6 +17713,612 @@
         null,
         null
       ]
+    ]
+  },
+  "weather": {
+    "type": "rain",
+    "intensity": 100,
+    "rainDrops": [
+      {
+        "x": 208.23027502243056,
+        "y": 648.3013251600207,
+        "length": 16.754252644516946,
+        "speed": 5.54212981503782
+      },
+      {
+        "x": 321.95499952936143,
+        "y": 103.35502181298193,
+        "length": 15.420447523785198,
+        "speed": 6.251340491408796
+      },
+      {
+        "x": 686.9429804885685,
+        "y": 205.43841298258897,
+        "length": 11.686844439995927,
+        "speed": 7.23750858075283
+      },
+      {
+        "x": 480.35286138635007,
+        "y": 539.7736658795067,
+        "length": 18.553179872113915,
+        "speed": 7.250997996774296
+      },
+      {
+        "x": 810.7215565045468,
+        "y": 552.1322765827084,
+        "length": 17.80766195365687,
+        "speed": 4.829999479121741
+      },
+      {
+        "x": 979.7142597867953,
+        "y": 260.96776164755454,
+        "length": 10.691087214558774,
+        "speed": 5.326644095335558
+      },
+      {
+        "x": 929.2122826052628,
+        "y": 447.84517187462507,
+        "length": 15.90404237072389,
+        "speed": 6.266881273585803
+      },
+      {
+        "x": 91.68664276736457,
+        "y": 412.39020344357243,
+        "length": 17.99713678993566,
+        "speed": 7.173122337225131
+      },
+      {
+        "x": 416.5479575784843,
+        "y": 337.3767122170914,
+        "length": 14.009014402177458,
+        "speed": 5.324026160898011
+      },
+      {
+        "x": 567.4190493988945,
+        "y": 276.5743413190685,
+        "length": 11.995714638214258,
+        "speed": 7.399232204032884
+      },
+      {
+        "x": 780.8911288594869,
+        "y": 193.29572518959534,
+        "length": 16.870667606214035,
+        "speed": 7.247116992958942
+      },
+      {
+        "x": 1017.1311238218267,
+        "y": 670.6911758473204,
+        "length": 10.066893033726,
+        "speed": 4.662726499185247
+      },
+      {
+        "x": 546.6165724141521,
+        "y": 654.638201614763,
+        "length": 16.064915634435486,
+        "speed": 5.636160649152935
+      },
+      {
+        "x": 581.1650050119838,
+        "y": 662.7446771192504,
+        "length": 13.510578508124471,
+        "speed": 6.762552556273761
+      },
+      {
+        "x": 244.95470349969617,
+        "y": 442.6222399894289,
+        "length": 16.890807734848984,
+        "speed": 7.293857900385359
+      },
+      {
+        "x": 499.2378101489137,
+        "y": 520.1516525177694,
+        "length": 17.41613256347731,
+        "speed": 7.571377254665456
+      },
+      {
+        "x": 452.932620873005,
+        "y": 662.44580293489,
+        "length": 13.052768282795311,
+        "speed": 5.676458581661218
+      },
+      {
+        "x": 98.81907585383378,
+        "y": 122.31860867639064,
+        "length": 10.018347090924472,
+        "speed": 5.514039823638131
+      },
+      {
+        "x": 558.7562540333131,
+        "y": 299.67844070924116,
+        "length": 18.655023356912885,
+        "speed": 5.488508001140586
+      },
+      {
+        "x": 482.6905947778231,
+        "y": 491.4696631242269,
+        "length": 12.140064435081293,
+        "speed": 5.086966945043523
+      },
+      {
+        "x": 859.9442950657324,
+        "y": 232.21431683045435,
+        "length": 17.586900855368476,
+        "speed": 6.245030442145569
+      },
+      {
+        "x": 645.4126522429314,
+        "y": 112.97417583085252,
+        "length": 19.2406358223516,
+        "speed": 6.295943412057337
+      },
+      {
+        "x": 576.8622153918337,
+        "y": 620.3919795573887,
+        "length": 11.397119047956728,
+        "speed": 7.098753916913978
+      },
+      {
+        "x": 718.3174900065061,
+        "y": 377.965350956296,
+        "length": 13.95028293657322,
+        "speed": 6.220883077664585
+      },
+      {
+        "x": 938.243249593182,
+        "y": 87.44437953386229,
+        "length": 19.782170080757574,
+        "speed": 4.6620238962878195
+      },
+      {
+        "x": 363.0501767654712,
+        "y": 51.9386519452947,
+        "length": 17.803030495064768,
+        "speed": 7.749075826706607
+      },
+      {
+        "x": 248.1275307841674,
+        "y": 596.3119185236137,
+        "length": 16.909676236082205,
+        "speed": 7.048524077697656
+      },
+      {
+        "x": 934.0045281033448,
+        "y": 731.0229955115027,
+        "length": 11.39948655076967,
+        "speed": 4.916705179220354
+      },
+      {
+        "x": 720.6926248451608,
+        "y": 605.5902122559413,
+        "length": 19.406513906693565,
+        "speed": 7.440437216221848
+      },
+      {
+        "x": 893.5266964346611,
+        "y": 687.4230706943441,
+        "length": 10.379452736188297,
+        "speed": 6.4018580131241505
+      },
+      {
+        "x": 499.0749145162896,
+        "y": 759.4116874536595,
+        "length": 13.44007174466963,
+        "speed": 5.018517916872261
+      },
+      {
+        "x": 680.2024237287699,
+        "y": 212.46125198752628,
+        "length": 18.814089994341437,
+        "speed": 5.506555761473045
+      },
+      {
+        "x": 782.5789899746951,
+        "y": 579.6652864090778,
+        "length": 10.000127295775789,
+        "speed": 4.467162225036779
+      },
+      {
+        "x": 83.28191684763858,
+        "y": 409.686778960094,
+        "length": 16.14169802567659,
+        "speed": 4.578800827803978
+      },
+      {
+        "x": 334.0342857093745,
+        "y": 211.35974812888898,
+        "length": 16.418858524584003,
+        "speed": 7.118081457921033
+      },
+      {
+        "x": 920.5212422951638,
+        "y": 67.95842012387372,
+        "length": 19.209838694856128,
+        "speed": 6.226304201337846
+      },
+      {
+        "x": 210.4041697253703,
+        "y": 548.0091076919006,
+        "length": 10.168033632312191,
+        "speed": 7.442361884322826
+      },
+      {
+        "x": 849.4802446509033,
+        "y": 305.4317487195728,
+        "length": 13.622661040620716,
+        "speed": 5.230400160003174
+      },
+      {
+        "x": 66.26084860880495,
+        "y": 421.7792801580026,
+        "length": 10.983429143585385,
+        "speed": 7.212711821693139
+      },
+      {
+        "x": 166.0601113801882,
+        "y": 470.3930242102366,
+        "length": 12.703419304687827,
+        "speed": 6.441285913532317
+      },
+      {
+        "x": 733.6586723315714,
+        "y": 390.67992438688475,
+        "length": 19.374873458413198,
+        "speed": 4.184232631074472
+      },
+      {
+        "x": 366.81262972369547,
+        "y": 479.33893515127653,
+        "length": 14.081328772455649,
+        "speed": 6.578936852316433
+      },
+      {
+        "x": 423.3539880105493,
+        "y": 307.2836203225406,
+        "length": 14.625728814991206,
+        "speed": 5.647532441009328
+      },
+      {
+        "x": 615.9797712005694,
+        "y": 711.3338061903079,
+        "length": 16.38677741848693,
+        "speed": 6.383513891305211
+      },
+      {
+        "x": 149.83154322109905,
+        "y": 215.66639578142048,
+        "length": 19.126203978662566,
+        "speed": 4.430049052077039
+      },
+      {
+        "x": 153.61741124170416,
+        "y": 222.00169405451717,
+        "length": 17.465120758999316,
+        "speed": 7.724735961726338
+      },
+      {
+        "x": 49.96952519310454,
+        "y": 566.1715897041868,
+        "length": 11.811904473892735,
+        "speed": 4.041842616629924
+      },
+      {
+        "x": 1028.9301655014094,
+        "y": 716.4888833077176,
+        "length": 10.954226119275676,
+        "speed": 7.422888871704028
+      },
+      {
+        "x": 757.4000150752053,
+        "y": 445.277308940643,
+        "length": 17.824010812847618,
+        "speed": 7.124635688515241
+      },
+      {
+        "x": 895.7419980376493,
+        "y": 84.75612752782479,
+        "length": 10.895499074688601,
+        "speed": 7.970968883542784
+      },
+      {
+        "x": 175.30718205471652,
+        "y": 65.45427433574754,
+        "length": 16.950880958352556,
+        "speed": 6.8670962745083415
+      },
+      {
+        "x": 789.4158585452645,
+        "y": 284.0777020699358,
+        "length": 12.449508489190775,
+        "speed": 4.007124467015231
+      },
+      {
+        "x": 142.46899228027124,
+        "y": 752.7867439739606,
+        "length": 12.522715255050258,
+        "speed": 4.695150056619707
+      },
+      {
+        "x": 911.7166049746377,
+        "y": 124.92435593555653,
+        "length": 13.59192951076841,
+        "speed": 4.947010194511604
+      },
+      {
+        "x": 724.4427486807547,
+        "y": 482.0765046758198,
+        "length": 12.60725480198353,
+        "speed": 7.169329847504387
+      },
+      {
+        "x": 166.46552142291452,
+        "y": 349.2583196045083,
+        "length": 12.219908832486357,
+        "speed": 4.203235214383664
+      },
+      {
+        "x": 955.2841874927193,
+        "y": 708.4747956323222,
+        "length": 11.36675578057745,
+        "speed": 7.74023173562257
+      },
+      {
+        "x": 1030.6362563402984,
+        "y": 177.58816762897348,
+        "length": 19.367982956892728,
+        "speed": 6.353424212447301
+      },
+      {
+        "x": 226.21894342783966,
+        "y": 672.931653674249,
+        "length": 15.284860803815281,
+        "speed": 5.462035829190976
+      },
+      {
+        "x": 391.5168548135715,
+        "y": 205.52996249943473,
+        "length": 17.97974353516123,
+        "speed": 6.040802865799893
+      },
+      {
+        "x": 516.0382729305788,
+        "y": 86.93057917140354,
+        "length": 13.140202278073506,
+        "speed": 7.147912960676931
+      },
+      {
+        "x": 223.92885838177637,
+        "y": 511.3350943170317,
+        "length": 16.35941795972062,
+        "speed": 6.765314259958371
+      },
+      {
+        "x": 230.54914157987793,
+        "y": 148.7397184499819,
+        "length": 16.358793097881417,
+        "speed": 6.603940461914531
+      },
+      {
+        "x": 497.49852022189947,
+        "y": 748.6384681577262,
+        "length": 17.323022311312673,
+        "speed": 4.728157348574313
+      },
+      {
+        "x": 1017.1207641665653,
+        "y": 621.1778752906107,
+        "length": 18.958365868504526,
+        "speed": 6.883185388807689
+      },
+      {
+        "x": 983.9974068282894,
+        "y": 32.17016614191012,
+        "length": 18.31142538058105,
+        "speed": 4.589235592953743
+      },
+      {
+        "x": 609.0693179209266,
+        "y": 371.69114980997523,
+        "length": 18.525866823050546,
+        "speed": 7.963612584347473
+      },
+      {
+        "x": 42.04795831905841,
+        "y": 663.0766653931964,
+        "length": 15.982135494106135,
+        "speed": 4.325215292275802
+      },
+      {
+        "x": 907.0027345301778,
+        "y": 434.0759590303581,
+        "length": 18.054478531227602,
+        "speed": 4.389615898656164
+      },
+      {
+        "x": 159.56316658705097,
+        "y": 436.44272762682783,
+        "length": 17.076646805581902,
+        "speed": 4.627748718698061
+      },
+      {
+        "x": 585.3475020111035,
+        "y": 537.6112785831333,
+        "length": 14.588297300946442,
+        "speed": 4.183330120333928
+      },
+      {
+        "x": 830.1614747184158,
+        "y": 401.6204976465712,
+        "length": 17.08162279524725,
+        "speed": 7.0966461091833555
+      },
+      {
+        "x": 361.0580219545371,
+        "y": 51.55620406577195,
+        "length": 14.145009135887797,
+        "speed": 6.570121320165976
+      },
+      {
+        "x": 1033.239625280264,
+        "y": 421.3540892509814,
+        "length": 17.467014551393866,
+        "speed": 4.82220993189423
+      },
+      {
+        "x": 537.2497579795072,
+        "y": 459.2375851095808,
+        "length": 12.029468769392615,
+        "speed": 5.122467976945369
+      },
+      {
+        "x": 466.0231132254128,
+        "y": 25.159041836935888,
+        "length": 11.358012628198098,
+        "speed": 7.303410893026797
+      },
+      {
+        "x": 882.485814690714,
+        "y": 707.6296338895186,
+        "length": 19.542263772110772,
+        "speed": 4.661358318343767
+      },
+      {
+        "x": 894.4997354824729,
+        "y": 504.4880233996285,
+        "length": 11.04994250556491,
+        "speed": 7.694596506047658
+      },
+      {
+        "x": 86.95227019580634,
+        "y": 236.68628431829578,
+        "length": 18.923751015146554,
+        "speed": 6.908379333336277
+      },
+      {
+        "x": 937.6203435353639,
+        "y": 552.3023729067716,
+        "length": 18.73313942571178,
+        "speed": 7.416045614707575
+      },
+      {
+        "x": 909.590322163384,
+        "y": 190.02126433232715,
+        "length": 12.785193173055347,
+        "speed": 7.243087768049373
+      },
+      {
+        "x": 957.9439006543745,
+        "y": 693.3876702473119,
+        "length": 10.520471894891458,
+        "speed": 6.8340596324485805
+      },
+      {
+        "x": 897.7986568777111,
+        "y": 676.5450152063391,
+        "length": 12.187413760884692,
+        "speed": 7.405725042658306
+      },
+      {
+        "x": 786.9238885161691,
+        "y": 135.1150680419277,
+        "length": 10.476778317654054,
+        "speed": 6.330080276503557
+      },
+      {
+        "x": 429.7956901105185,
+        "y": 331.40577302258885,
+        "length": 14.556971225291385,
+        "speed": 6.91925488495761
+      },
+      {
+        "x": 177.40725586309776,
+        "y": 450.4045231982097,
+        "length": 15.152548325835086,
+        "speed": 7.389794786095957
+      },
+      {
+        "x": 265.02944325786024,
+        "y": 103.21087622257896,
+        "length": 14.797016448867542,
+        "speed": 5.130777942236805
+      },
+      {
+        "x": 910.4777383422452,
+        "y": 260.5984741032564,
+        "length": 16.647802947206365,
+        "speed": 5.231061831140809
+      },
+      {
+        "x": 996.008643704863,
+        "y": 31.489935037218572,
+        "length": 15.10966453800231,
+        "speed": 7.766599929203481
+      },
+      {
+        "x": 200.66393228388046,
+        "y": 135.68322168153568,
+        "length": 11.0944708562418,
+        "speed": 4.892589751259249
+      },
+      {
+        "x": 158.25968273300433,
+        "y": 620.6927399749728,
+        "length": 12.938920612470959,
+        "speed": 7.920395757343052
+      },
+      {
+        "x": 926.6788050352246,
+        "y": 16.054578216346584,
+        "length": 17.503165046977692,
+        "speed": 4.793963323332039
+      },
+      {
+        "x": 472.03535100568655,
+        "y": 453.9473479770838,
+        "length": 11.033105987238628,
+        "speed": 4.744698509840031
+      },
+      {
+        "x": 914.7079709530728,
+        "y": 184.36561349755962,
+        "length": 11.337140001074102,
+        "speed": 5.930386469655569
+      },
+      {
+        "x": 92.5931110218635,
+        "y": 9.929513019575712,
+        "length": 19.360004353130943,
+        "speed": 5.857903474541331
+      },
+      {
+        "x": 177.9714729241012,
+        "y": 553.7005050297169,
+        "length": 18.811377631378214,
+        "speed": 7.435219255338904
+      },
+      {
+        "x": 462.09050256623476,
+        "y": 2.743753432933202,
+        "length": 15.423387855624561,
+        "speed": 6.055713762852588
+      },
+      {
+        "x": 735.5802037124936,
+        "y": 534.4601702055731,
+        "length": 18.303472498271397,
+        "speed": 7.572104694573206
+      },
+      {
+        "x": 765.948991970534,
+        "y": 377.9309388421318,
+        "length": 14.30283459501682,
+        "speed": 7.6908583026891835
+      },
+      {
+        "x": 113.88448584166815,
+        "y": 249.0973038538491,
+        "length": 16.927559482481286,
+        "speed": 4.1566384896301685
+      }
     ]
   }
 }

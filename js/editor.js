@@ -15,8 +15,8 @@ tilesetNames.forEach((name, i) => {
   img.onload = () => {
     tilesetsLoaded++;
     if (tilesetsLoaded === tilesetNames.length) {
-      drawPalette(); // draw once all images are loaded
-      draw();        // redraw map
+      drawPalette();
+      draw();
     }
   };
   tilesetImages.push(img);
@@ -25,8 +25,8 @@ tilesetNames.forEach((name, i) => {
 let currentTilesetIndex = 0;
 
 // --- Map dimensions ---
-const width = canvas.width / TILE_SIZE;
-const height = canvas.height / TILE_SIZE;
+let width = canvas.width / TILE_SIZE;
+let height = canvas.height / TILE_SIZE;
 
 // --- Map Layers ---
 let mapData = {
@@ -37,7 +37,6 @@ let mapData = {
   object2: Array.from({ length: height }, () => Array(width).fill(null)),       
   object2Anim: Array.from({ length: height }, () => Array(width).fill(null))    
 };
-
 
 // --- Current selections ---
 let currentLayer = "ground";
@@ -55,7 +54,7 @@ let paletteDiv = document.getElementById("paletteContainer");
 if(!paletteDiv){
   paletteDiv = document.createElement("div");
   paletteDiv.id = "paletteContainer";
-  paletteDiv.style.width = "600px"; // wider for better visibility
+  paletteDiv.style.width = "600px";
   paletteDiv.style.height = "600px";
   paletteDiv.style.overflowY = "auto";
   paletteDiv.style.border = "1px solid #aaa";
@@ -173,7 +172,7 @@ if(!controlsDiv){
   document.body.appendChild(controlsDiv);
 }
 
-// --- Tileset selector moved to controls ---
+// --- Tileset selector ---
 controlsDiv.appendChild(document.createTextNode("Tileset: "));
 const tilesetSelect = document.createElement("select");
 tilesetSelect.style.width = "150px";
@@ -190,7 +189,7 @@ tilesetSelect.onchange = () => {
 controlsDiv.appendChild(tilesetSelect);
 controlsDiv.appendChild(document.createElement("br"));
 
-// Add layer selector
+// --- Layer selector ---
 controlsDiv.appendChild(document.createTextNode("Layer: "));
 const layerSelect = document.createElement("select");
 ["ground","groundAnim","objects","objectAnim","object2","object2Anim"].forEach(layer=>{
@@ -199,12 +198,11 @@ const layerSelect = document.createElement("select");
   opt.text = layer;
   layerSelect.appendChild(opt);
 });
-
 layerSelect.onchange = () => currentLayer = layerSelect.value;
 controlsDiv.appendChild(layerSelect);
 controlsDiv.appendChild(document.createElement("br"));
 
-// Add attribute checkboxes
+// --- Attribute checkboxes ---
 ATTRIBUTE_KEYS.forEach(attr=>{
   const chk = document.createElement("input");
   chk.type = "checkbox"; chk.id = attr;
@@ -216,13 +214,12 @@ ATTRIBUTE_KEYS.forEach(attr=>{
   controlsDiv.appendChild(document.createElement("br"));
 });
 
-// Light section
+// --- Light Section ---
 const lightSection = document.createElement("div");
 lightSection.style.marginTop = "5px";
 lightSection.appendChild(document.createTextNode("Light:"));
 lightSection.appendChild(document.createElement("br"));
 
-// Light enable checkbox
 const lightChk = document.createElement("input");
 lightChk.type = "checkbox";
 lightChk.onchange = ()=>currentAttributes.light = lightChk.checked;
@@ -230,7 +227,6 @@ lightSection.appendChild(lightChk);
 lightSection.appendChild(document.createTextNode("Enable Light"));
 lightSection.appendChild(document.createElement("br"));
 
-// Color picker
 const lightColorInput = document.createElement("input");
 lightColorInput.type = "color";
 lightColorInput.value = lightSource.color;
@@ -239,7 +235,6 @@ lightSection.appendChild(document.createTextNode("Color:"));
 lightSection.appendChild(lightColorInput);
 lightSection.appendChild(document.createElement("br"));
 
-// Brightness slider
 const brightnessInput = document.createElement("input");
 brightnessInput.type = "range";
 brightnessInput.min = 0; brightnessInput.max = 1; brightnessInput.step = 0.01;
@@ -249,7 +244,6 @@ lightSection.appendChild(document.createTextNode("Brightness:"));
 lightSection.appendChild(brightnessInput);
 lightSection.appendChild(document.createElement("br"));
 
-// Flicker checkbox
 const flickerChk = document.createElement("input");
 flickerChk.type = "checkbox";
 flickerChk.onchange = ()=>lightSource.flicker = flickerChk.checked;
@@ -259,7 +253,7 @@ lightSection.appendChild(document.createElement("br"));
 
 controlsDiv.appendChild(lightSection);
 
-// --- Action buttons ---
+// --- Action Buttons ---
 ["Fill Layer","Clear Layer","Export Map"].forEach(text=>{
   const btn = document.createElement("button");
   btn.innerText = text;
@@ -276,10 +270,13 @@ controlsDiv.appendChild(lightSection);
   controlsDiv.appendChild(btn);
 });
 
-// --- Load map ---
+// --- Load Map ---
 const loadInput = document.createElement("input");
 loadInput.type = "file";
 loadInput.accept = ".json";
+loadInput.style.display = "block";
+loadInput.style.marginTop = "5px";
+
 loadInput.onchange = (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -288,27 +285,25 @@ loadInput.onchange = (e) => {
   reader.onload = evt => {
     const json = JSON.parse(evt.target.result);
 
-    // Resize canvas to match map dimensions
+    // Resize canvas
     canvas.width = json.width * TILE_SIZE;
     canvas.height = json.height * TILE_SIZE;
+    width = json.width;
+    height = json.height;
 
-    // Update width/height variables
-    const mapWidth = json.width;
-    const mapHeight = json.height;
-
-    // Helper to ensure full array dimensions
+    // Helper to fill missing tiles
     function fillLayer(layer, defaultValue = null) {
       const newLayer = [];
-      for (let y = 0; y < mapHeight; y++) {
+      for (let y = 0; y < height; y++) {
         newLayer[y] = [];
-        for (let x = 0; x < mapWidth; x++) {
+        for (let x = 0; x < width; x++) {
           newLayer[y][x] = layer?.[y]?.[x] ?? defaultValue;
         }
       }
       return newLayer;
     }
 
-    // Load layers with fallback for missing data
+    // Load layers
     mapData.ground      = fillLayer(json.layers.ground);
     mapData.groundAnim  = fillLayer(json.layers.groundAnim);
     mapData.objects     = fillLayer(json.layers.objects);
@@ -320,9 +315,9 @@ loadInput.onchange = (e) => {
   };
   reader.readAsText(file);
 };
+
 controlsDiv.appendChild(loadInput);
 controlsDiv.appendChild(document.createElement("br"));
-
 
 // --- Paint Tile ---
 function paintTile(x, y) {
@@ -409,63 +404,91 @@ function handleCanvasPaint(e) {
 
   draw();
 }
+
 // --- Helper: convert hex color to rgba ---
 function hexToRGBA(hex, alpha = 1) {
-  // Remove leading #
   hex = hex.replace(/^#/, '');
-
-  // Support shorthand like #fff
-  if (hex.length === 3) {
-    hex = hex.split('').map(c => c + c).join('');
-  }
-
-  const r = parseInt(hex.slice(0,2), 16);
-  const g = parseInt(hex.slice(2,4), 16);
-  const b = parseInt(hex.slice(4,6), 16);
-
+  if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
+  const r = parseInt(hex.slice(0,2),16);
+  const g = parseInt(hex.slice(2,4),16);
+  const b = parseInt(hex.slice(4,6),16);
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// --- Draw Map ---
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// --- Map Options Panel (Rain) ---
+let optionsDiv = document.createElement("div");
+optionsDiv.id = "optionsPanel";
+optionsDiv.style.position = "absolute";
+optionsDiv.style.top = "10px";
+optionsDiv.style.right = "10px";
+optionsDiv.style.width = "200px";
+optionsDiv.style.padding = "10px";
+optionsDiv.style.border = "1px solid #aaa";
+optionsDiv.style.backgroundColor = "#f0f0f0";
+optionsDiv.style.display = "none";
+optionsDiv.style.zIndex = 1000;
 
-  const renderOrder = ["ground", "groundAnim", "objects", "objectAnim", "object2", "object2Anim"]; // object2 layers on top
+const optionsTitle = document.createElement("div");
+optionsTitle.innerText = "Map Options";
+optionsTitle.style.fontWeight = "bold";
+optionsTitle.style.marginBottom = "5px";
+optionsDiv.appendChild(optionsTitle);
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      renderOrder.forEach(layerName => {
-        let tile = mapData[layerName][y][x];
-        if (tile) {
-          if (Array.isArray(tile.tileId)) tile = { ...tile, tileId: tile.tileId[0] };
-          const ts = tilesetImages[tile.tileset || 0];
-          const tilesAcrossInImage = Math.floor(ts.width / TILE_SIZE);
-          const sx = (tile.tileId % tilesAcrossInImage) * TILE_SIZE;
-          const sy = Math.floor(tile.tileId / tilesAcrossInImage) * TILE_SIZE;
-          ctx.drawImage(ts, sx, sy, TILE_SIZE, TILE_SIZE, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+const weatherSection = document.createElement("div");
+weatherSection.style.marginTop = "5px";
+weatherSection.appendChild(document.createTextNode("Weather:"));
+weatherSection.appendChild(document.createElement("br"));
 
-          // Overlay attributes
-          if (tile.attributes) {
-            if (tile.attributes.blocker) ctx.fillStyle = "rgba(255,0,0,0.3)";
-            else if (tile.attributes.damage) ctx.fillStyle = "rgba(255,165,0,0.3)";
-            else if (tile.attributes.healing) ctx.fillStyle = "rgba(0,255,0,0.3)";
-            else if (tile.attributes.trigger) ctx.fillStyle = "rgba(0,0,255,0.3)";
-            if (tile.attributes.blocker || tile.attributes.damage || tile.attributes.healing || tile.attributes.trigger) {
-              ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            }
+const rainChk = document.createElement("input");
+rainChk.type = "checkbox";
+rainChk.id = "rainToggle";
+weatherSection.appendChild(rainChk);
+weatherSection.appendChild(document.createTextNode("Rain"));
+weatherSection.appendChild(document.createElement("br"));
 
-            if (tile.attributes.light) {
-              const light = tile.attributes.light;
-              if (light._last === undefined) light._last = light.brightness;
-              light._last += (Math.random() - 0.5) * 0.02;
-              light._last = Math.min(Math.max(light._last, 0.7 * light.brightness), 1.0 * light.brightness);
-              ctx.fillStyle = hexToRGBA(light.color, light._last);
-              ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-            }
-          }
-        }
-      });
-    }
+const rainSlider = document.createElement("input");
+rainSlider.type = "range";
+rainSlider.min = 0;
+rainSlider.max = 1;
+rainSlider.step = 0.01;
+rainSlider.value = 0.5;
+rainSlider.style.width = "100%";
+weatherSection.appendChild(document.createTextNode("Intensity:"));
+weatherSection.appendChild(document.createElement("br"));
+weatherSection.appendChild(rainSlider);
+
+optionsDiv.appendChild(weatherSection);
+document.body.appendChild(optionsDiv);
+
+const toggleOptionsBtn = document.createElement("button");
+toggleOptionsBtn.innerText = "Options";
+toggleOptionsBtn.style.position = "absolute";
+toggleOptionsBtn.style.top = "10px";
+toggleOptionsBtn.style.right = "220px";
+toggleOptionsBtn.style.zIndex = 1001;
+document.body.appendChild(toggleOptionsBtn);
+
+toggleOptionsBtn.onclick = () => {
+  optionsDiv.style.display = optionsDiv.style.display === "none" ? "block" : "none";
+};
+
+const rainImg = new Image();
+rainImg.src = "assets/rain.png";
+
+let rainEnabled = false;
+let rainIntensity = 0.5;
+
+rainChk.onchange = () => { rainEnabled = rainChk.checked; draw(); };
+rainSlider.oninput = () => { rainIntensity = parseFloat(rainSlider.value); draw(); };
+
+// --- Draw Map with Rain ---
+const originalDraw = draw || (()=>{}); // handle if draw is undefined
+draw = function() {
+  originalDraw();
+
+  if (rainEnabled && rainImg.complete) {
+    ctx.globalAlpha = rainIntensity;
+    ctx.drawImage(rainImg, 0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1.0;
   }
-}
-
+};
