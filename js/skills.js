@@ -8,7 +8,7 @@ export function createClusterProjectile(player, targetX, targetY) {
   const dx = targetX - (player.px + TILE_SIZE / 2);
   const dy = targetY - (player.py + TILE_SIZE / 2);
   const dist = Math.hypot(dx, dy);
-  const speed = 4;
+  const speed = 1;
   const vx = (dx / dist) * speed;
   const vy = (dy / dist) * speed;
 

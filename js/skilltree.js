@@ -82,94 +82,100 @@ export const skillTree = {
     ],
 
    // === Defense Branch (Middle) ===
-"defense_1": [
-  { id: "defense_2", name: "Fortified", desc: "+30 Max HP", requires: "defense_1", branch: "middle", level: 0, maxLevel: 5, apply: (player, lvl) => { player.maxHP += 30 * lvl; player.HP += 30 * lvl; } }
-],
-"defense_2": [
-  { id: "defense_3", name: "Regeneration", desc: "+1 HP/sec", requires: "defense_2", branch: "middle", level: 0, maxLevel: 5, apply: (player, lvl) => { player.hpRegen += 1 * lvl; } }
-],
-"defense_3": [
-  { id: "defense_4", name: "Energy Shield", desc: "Absorbs 50 damage per 30s", requires: "defense_3", branch: "middle", level: 0, maxLevel: 3, apply: (player, lvl) => { 
-      if(lvl > 0) { 
-          player.energyShield = 50; 
-          player.energyShieldCooldown = 30; 
-          player.unlockedSkills ??= [];
-          if(!player.unlockedSkills.includes("energyShield")) player.unlockedSkills.push("energyShield");
-      } 
-  } }
-],
-"defense_4": [
-  { id: "defense_5", name: "Stoneform", desc: "Temporary damage immunity", requires: "defense_4", branch: "middle", level: 0, maxLevel: 3, apply: (player, lvl) => { 
-      if(lvl > 0) {
-          player.stoneform = true; 
-          player.unlockedSkills ??= [];
-          if(!player.unlockedSkills.includes("stoneform")) player.unlockedSkills.push("stoneform");
-      } 
-  } }
-],
-"defense_5": [
-  { 
-    id: "defense_6", 
-    name: "Magnet", 
-    desc: "Pulls nearby pickups", 
-    requires: "defense_5", 
-    branch: "middle", 
-    level: 0, 
-    maxLevel: 1, 
-    apply: (player, lvl) => { 
-      if (lvl > 0) { 
-          player.magnet = true; 
-          player.magnetLevel = lvl;     // patch: ensure pixel pull strength
-          player.unlockedSkills ??= [];
-          if (!player.unlockedSkills.includes("magnet")) 
-              player.unlockedSkills.push("magnet");
-      } 
-    } 
-  }
-],
+    "defense_1": [
+      { id: "defense_2", name: "Fortified", desc: "+30 Max HP", requires: "defense_1", branch: "middle", level: 0, maxLevel: 5, apply: (player, lvl) => { player.maxHP += 30 * lvl; player.HP += 30 * lvl; } }
+    ],
+    "defense_2": [
+      { id: "defense_3", name: "Regeneration", desc: "+1 HP/sec", requires: "defense_2", branch: "middle", level: 0, maxLevel: 5, apply: (player, lvl) => { player.hpRegen += 1 * lvl; } }
+    ],
+    "defense_3": [
+      { id: "defense_4", name: "Energy Shield", desc: "Absorbs 50 damage per 30s", requires: "defense_3", branch: "middle", level: 0, maxLevel: 3, apply: (player, lvl) => { 
+          if(lvl > 0) { 
+              player.energyShield = 50; 
+              player.energyShieldCooldown = 30; 
+              player.unlockedSkills ??= [];
+              if(!player.unlockedSkills.includes("energyShield")) player.unlockedSkills.push("energyShield");
+          } 
+      } }
+    ],
+    "defense_4": [
+      { id: "defense_5", name: "Stoneform", desc: "Temporary damage immunity", requires: "defense_4", branch: "middle", level: 0, maxLevel: 3, apply: (player, lvl) => { 
+          if(lvl > 0) {
+              player.stoneform = true; 
+              player.unlockedSkills ??= [];
+              if(!player.unlockedSkills.includes("stoneform")) player.unlockedSkills.push("stoneform");
+          } 
+      } }
+    ],
+    "defense_5": [
+      { 
+        id: "defense_6", 
+        name: "Magnet", 
+        desc: "Pulls nearby pickups", 
+        requires: "defense_5", 
+        branch: "middle", 
+        level: 0, 
+        maxLevel: 1, 
+        apply: (player, lvl) => { 
+          if (lvl > 0) { 
+              player.magnet = true; 
+              player.magnetLevel = lvl;
+              player.unlockedSkills ??= [];
+              if (!player.unlockedSkills.includes("magnet")) 
+                  player.unlockedSkills.push("magnet");
+          } 
+        } 
+      }
+    ],
 
-// === Speed Branch (Right) ===
-"speed_1": [
-  { id: "speed_2", name: "Evasion", desc: "+10% Dodge Chance", requires: "speed_1", branch: "right", level: 0, maxLevel: 5, apply: (player, lvl) => { player.dodge += 0.10 * lvl; } }
-],
-"speed_2": [
-  { id: "speed_3", name: "Blink", desc: "Dash forward", requires: "speed_2", branch: "right", level: 0, maxLevel: 1, apply: (player, lvl) => { 
-      if(lvl > 0) {
-          player.blinkDistance = 5; 
-          player.blinkCooldown = 10; 
-          player.unlockedSkills ??= [];
-          if(!player.unlockedSkills.includes("blink")) player.unlockedSkills.push("blink");
-      } 
-  } }
-],
-"speed_3": [
-  { id: "speed_4", name: "Phase Strike", desc: "Attacks ignore 25% armor", requires: "speed_3", branch: "right", level: 0, maxLevel: 1, apply: (player, lvl) => { 
-      if(lvl > 0) {
-          player.phaseStrike = 0.25; 
-          player.unlockedSkills ??= [];
-          if(!player.unlockedSkills.includes("phaseStrike")) player.unlockedSkills.push("phaseStrike");
-      } 
-  } }
-],
-"speed_4": [
-  { id: "speed_5", name: "Momentum", desc: "+20% Projectile Speed", requires: "speed_4", branch: "right", level: 0, maxLevel: 5, apply: (player, lvl) => { player.projectileSpeed *= 1 + 0.2 * lvl; } }
-],
-"speed_5": [
-  { id: "speed_6", name: "Adrenaline", desc: "+25% Attack Speed at full HP", requires: "speed_5", branch: "right", level: 0, maxLevel: 5, apply: (player, lvl) => { player.adrenaline = 0.25 * lvl; } }
-],
-"speed_6": [
-  { id: "speed_7", name: "Lightning Reflexes", desc: "Dodge resets fire cooldown", requires: "speed_6", branch: "right", level: 0, maxLevel: 3, apply: (player, lvl) => { if(lvl>0) player.lightningReflexes = true; } }
-],
-"speed_7": [
-  { id: "speed_8", name: "Blitz", desc: "+1 Dash Charge", requires: "speed_7", branch: "right", level: 0, maxLevel: 3, apply: (player, lvl) => { player.dashCharges += lvl; } }
-],
-"speed_8": [
-  { id: "uber_speed_1", name: "Uber Phantom", desc: "Double Move Speed & 50% Dodge", requires: "speed_8", branch: "right", level: 0, maxLevel: 3, apply: (player, lvl) => { if(lvl>0) { player.moveSpeed *= 2; player.dodge += 0.5; } } }
-],
-"speed_9": [
-  { id: "uber_speed_2", name: "Uber Storm", desc: "Rapid Fire fires twice", requires: "speed_8", branch: "right", level: 0, maxLevel: 3, apply: (player, lvl) => { if(lvl>0) player.rapidFire = true; } }
-]
-
+    // === Speed Branch (Right) ===
+    "speed_1": [
+      { id: "speed_2", name: "Evasion", desc: "+10% Dodge Chance", requires: "speed_1", branch: "right", level: 0, maxLevel: 5, apply: (player, lvl) => { player.dodge += 0.10 * lvl; } }
+    ],
+    "speed_2": [
+      { id: "speed_3", name: "Blink", desc: "Dash forward", requires: "speed_2", branch: "right", level: 0, maxLevel: 1, apply: (player, lvl) => { 
+          if(lvl > 0) {
+              player.blinkDistance = 5; 
+              player.blinkCooldown = 10; 
+              player.unlockedSkills ??= [];
+              if(!player.unlockedSkills.includes("blink")) player.unlockedSkills.push("blink");
+          } 
+      } }
+    ],
+    "speed_3": [
+      { id: "speed_4", name: "Phase Strike", desc: "Attacks ignore 25% armor", requires: "speed_3", branch: "right", level: 0, maxLevel: 1, apply: (player, lvl) => { 
+          if(lvl > 0) {
+              player.phaseStrike = 0.25; 
+              player.unlockedSkills ??= [];
+              if(!player.unlockedSkills.includes("phaseStrike")) player.unlockedSkills.push("phaseStrike");
+          } 
+      } }
+    ],
+    "speed_4": [
+      { id: "speed_5", name: "Momentum", desc: "+20% Projectile Speed", requires: "speed_4", branch: "right", level: 0, maxLevel: 5, 
+        apply: (player, lvl) => { 
+    if (lvl > 0) {
+        // Use the current projectileSpeed, not the base
+        player.projectileSpeed = (player.projectileSpeed ?? 1) * (1 + 0.2 * lvl);
+    }
+}
+      }
+    ],
+    "speed_5": [
+      { id: "speed_6", name: "Adrenaline", desc: "+25% Attack Speed at full HP", requires: "speed_5", branch: "right", level: 0, maxLevel: 5, apply: (player, lvl) => { player.adrenaline = 0.25 * lvl; } }
+    ],
+    "speed_6": [
+      { id: "speed_7", name: "Lightning Reflexes", desc: "Dodge resets fire cooldown", requires: "speed_6", branch: "right", level: 0, maxLevel: 3, apply: (player, lvl) => { if(lvl>0) player.lightningReflexes = true; } }
+    ],
+    "speed_7": [
+      { id: "speed_8", name: "Blitz", desc: "+1 Dash Charge", requires: "speed_7", branch: "right", level: 0, maxLevel: 3, apply: (player, lvl) => { player.dashCharges += lvl; } }
+    ],
+    "speed_8": [
+      { id: "uber_speed_1", name: "Uber Phantom", desc: "Double Move Speed & 50% Dodge", requires: "speed_8", branch: "right", level: 0, maxLevel: 3, apply: (player, lvl) => { if(lvl>0) { player.moveSpeed *= 2; player.dodge += 0.5; } } }
+    ],
+    "speed_9": [
+      { id: "uber_speed_2", name: "Uber Storm", desc: "Rapid Fire fires twice", requires: "speed_8", branch: "right", level: 0, maxLevel: 3, apply: (player, lvl) => { if(lvl>0) player.rapidFire = true; } }
+    ]
   }
 };
 
@@ -203,12 +209,13 @@ export function resetSkillTree(player) {
         energyShieldCooldown: 0,
         stoneform: false,
         magnet: false,
-        magnetLevel: 0,       // patch: reset magnet level
+        magnetLevel: 0,
         dodge: 0,
         blinkDistance: 0,
         blinkCooldown: 0,
         phaseStrike: 0,
-        projectileSpeed: 1,
+        baseProjectileSpeed: 1,  // ✅ ensure base speed exists
+        projectileSpeed: 0.3,
         adrenaline: 0,
         lightningReflexes: false,
         dashCharges: 0,

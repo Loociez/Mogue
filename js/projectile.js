@@ -6,13 +6,18 @@ export class Projectile {
   ) {
     this.x = x;
     this.y = y;
-    this.vx = vx;
-    this.vy = vy;
     this.damage = damage;
     this.life = life;
     this.pierce = pierce;
     this.type = type;
     this.owner = owner;
+
+    // Base speed setup
+    const baseSpeed = this.owner?.baseProjectileSpeed ?? 0.3; // raw units
+    const speedMultiplier = this.owner?.projectileSpeed ?? 1;  // multiplier
+    const angle = Math.atan2(vy, vx);
+    this.vx = Math.cos(angle) * baseSpeed * speedMultiplier;
+    this.vy = Math.sin(angle) * baseSpeed * speedMultiplier;
 
     // Distance tracking
     this.startX = x;
@@ -29,15 +34,35 @@ export class Projectile {
     this.critAlpha = 1;
 
     // Optional hooks
-    this.onExpire = null; // called when life <= 0
-    this.onHit = null;    // called when hitting an enemy
+    this.onExpire = null;
+    this.onHit = null;
 
+    // Type-specific properties
     switch (type) {
-      case "bouncing": this.bounces = 3; this.radius = 4; break;
-      case "homing": this.speed = Math.hypot(vx, vy); this.radius = 4; break;
-      case "heavy": this.radius = 6; break;
-      default: this.radius = 4;
+      case "bouncing":
+        this.bounces = 3;
+        this.radius = 4;
+        break;
+      case "homing":
+        this.speed = Math.hypot(this.vx, this.vy);
+        this.radius = 4;
+        break;
+      case "heavy":
+        this.radius = 6;
+        break;
+      default:
+        this.radius = 4;
     }
+  }
+
+  // Update velocity if owner's projectileSpeed changes mid-flight
+  updateVelocity() {
+    if (!this.owner) return;
+    const angle = Math.atan2(this.vy, this.vx);
+    const baseSpeed = this.owner.baseProjectileSpeed ?? 0.3;
+    const speedMultiplier = this.owner.projectileSpeed ?? 1;
+    this.vx = Math.cos(angle) * baseSpeed * speedMultiplier;
+    this.vy = Math.sin(angle) * baseSpeed * speedMultiplier;
   }
 
   update(enemies = [], canvas = { width: 800, height: 600 }, projectiles = []) {
@@ -51,8 +76,9 @@ export class Projectile {
       }
       if (closest) {
         const angle = Math.atan2(closest.py + 16 - this.y, closest.px + 16 - this.x);
-        this.vx = Math.cos(angle) * this.speed;
-        this.vy = Math.sin(angle) * this.speed;
+        const speed = Math.hypot(this.vx, this.vy);
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
       }
     }
 
@@ -78,7 +104,7 @@ export class Projectile {
     // Explosions on expiration
     if (this.life <= 0) {
       if (this.owner?.customProjectile && this.onExpire) {
-        this.onExpire(projectiles); // pass projectiles array
+        this.onExpire(projectiles);
         this.onExpire = null;
       }
     }
