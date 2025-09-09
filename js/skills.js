@@ -3,7 +3,6 @@ import { TILE_SIZE } from "./map.js";
 import { Projectile } from "./projectile.js";
 import { skillTree } from "./skilltree.js";
 
-
 // === Custom projectile skills ===
 export function createClusterProjectile(player, targetX, targetY) {
   const dx = targetX - (player.px + TILE_SIZE / 2);
@@ -97,6 +96,35 @@ export function phaseStrike(player, target) {
   const damage = Math.max(0, (player.damage || 1) - effectiveArmor);
   target.HP -= damage;
 }
+// === Magnet skill logic ===
+export function applyMagnet(player, level, orbs = []) {
+  if (!player.magnet || !Array.isArray(orbs)) return;
+
+
+  const range = 1.5 * TILE_SIZE + level * TILE_SIZE; // base + per level
+  const speed = 1 + level; 
+
+  for (let i = orbs.length - 1; i >= 0; i--) {
+    const orb = orbs[i];
+    const dx = player.px + TILE_SIZE/2 - orb.x;
+    const dy = player.py + TILE_SIZE/2 - orb.y;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist < range) {
+      orb.x += (dx / dist) * speed;
+      orb.y += (dy / dist) * speed;
+
+      // Collect when close
+      if (dist < 10) {
+        player.gainXp(orb.value);   // ✅ matches your game.js
+        player.gold += orb.value;   // ✅ matches your game.js
+        orbs.splice(i, 1);
+      }
+    }
+  }
+}
+
+
 
 // === Attach skills to skillTree nodes ===
 export function attachSkills(skillTree) {
@@ -111,12 +139,10 @@ export function attachSkills(skillTree) {
           break;
         case "speed_10": // Blink
           skill.apply = (player) => { 
-            player.blinkDistance = 150;   // pixels
-            player.blinkCooldown = 180;   // frames (3s at 60fps)
-            if (!Array.isArray(player.unlockedSkills)) player.unlockedSkills = [];
-            if (!player.unlockedSkills.includes("blink")) {
-              player.unlockedSkills.push("blink");
-            }
+            player.blinkDistance = 150;
+            player.blinkCooldown = 180;
+            player.unlockedSkills ??= [];
+            if (!player.unlockedSkills.includes("blink")) player.unlockedSkills.push("blink");
           };
           break;
         case "speed_12": // Phase Strike
@@ -127,6 +153,14 @@ export function attachSkills(skillTree) {
           break;
         case "attack_10": // Siphoning Shot
           skill.apply = (player) => { player.bossLeech = 0.10; };
+          break;
+        case "defense_6": // Magnet
+          skill.apply = (player, level) => {
+            player.magnet = true;
+            player.magnetLevel = level || 1;
+            player.unlockedSkills ??= [];
+            if (!player.unlockedSkills.includes("magnet")) player.unlockedSkills.push("magnet");
+          };
           break;
         case "defense_10": // Energy Shield
           skill.apply = (player) => { player.energyShield = 50; player.energyShieldCooldown = 30; };
@@ -154,21 +188,29 @@ export function unlockSkill(player, skillId, skillTree) {
   for (const category of Object.values(skillTree.nodes)) {
     const skill = category.find(s => s.id === skillId);
     if (skill && typeof skill.apply === "function") {
-      skill.apply(player);
+      skill.apply(player, skill.level || 1);
       skill.unlocked = true;
     }
   }
 }
 
-export function applyAllSkills(player) {
-    if (!skillTree || !skillTree.nodes) {
-        console.warn("skillTree is undefined!");
-        return;
-    }
-    Object.values(skillTree.nodes).forEach(branch => {
-        branch.forEach(node => {
-            if (node.level > 0) node.apply(player, node.level);
-        });
+// === Apply all skills each frame ===
+export function applyAllSkills(player, xpOrbs = []) {
+  if (!skillTree || !skillTree.nodes) {
+    console.warn("skillTree is undefined!");
+    return;
+  }
+
+  Object.values(skillTree.nodes).forEach(branch => {
+    branch.forEach(node => {
+      if (node.level > 0 && typeof node.apply === "function") {
+        node.apply(player, node.level);
+      }
     });
+  });
+
+  if (player.magnet && player.magnetLevel > 0) {
+    applyMagnet(player, player.magnetLevel, xpOrbs);
+  }
 }
 

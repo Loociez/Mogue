@@ -108,13 +108,24 @@ export const skillTree = {
   } }
 ],
 "defense_5": [
-  { id: "defense_6", name: "Magnet", desc: "Pulls nearby pickups", requires: "defense_5", branch: "middle", level: 0, maxLevel: 1, apply: (player, lvl) => { 
-      if(lvl > 0) { 
+  { 
+    id: "defense_6", 
+    name: "Magnet", 
+    desc: "Pulls nearby pickups", 
+    requires: "defense_5", 
+    branch: "middle", 
+    level: 0, 
+    maxLevel: 1, 
+    apply: (player, lvl) => { 
+      if (lvl > 0) { 
           player.magnet = true; 
+          player.magnetLevel = lvl;     // patch: ensure pixel pull strength
           player.unlockedSkills ??= [];
-          if(!player.unlockedSkills.includes("magnet")) player.unlockedSkills.push("magnet");
+          if (!player.unlockedSkills.includes("magnet")) 
+              player.unlockedSkills.push("magnet");
       } 
-  } }
+    } 
+  }
 ],
 
 // === Speed Branch (Right) ===
@@ -192,6 +203,7 @@ export function resetSkillTree(player) {
         energyShieldCooldown: 0,
         stoneform: false,
         magnet: false,
+        magnetLevel: 0,       // patch: reset magnet level
         dodge: 0,
         blinkDistance: 0,
         blinkCooldown: 0,
@@ -216,18 +228,9 @@ export function resetSkillTree(player) {
     if (ptsLabel) ptsLabel.textContent = "Points: 0";
 
     // 4️⃣ Clear any cached state that renderSkillTree may use
-    window.skillTreeCache = {};  // if you have a cache
+    window.skillTreeCache = {};  
     window.selectedSkillNodes = [];
 
     // 5️⃣ Force a stateless render
     if (typeof renderSkillTree === "function") renderSkillTree(player);
 }
-
-
-
-
-
-
-
-
-

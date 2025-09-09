@@ -148,7 +148,7 @@ export class Player {
     this.frameTicker = 0;
   }
 
- reset(x = SPAWN_X, y = SPAWN_Y) {
+  reset(x = SPAWN_X, y = SPAWN_Y) {
     this.x = x;
     this.y = y;
     this.targetX = x;
@@ -170,8 +170,7 @@ export class Player {
 
     // --- Restore character base stats (damage, projectileType, fireCooldownMax, speed) ---
     this.setCharacter(this.characterType, this.spriteSlot);
-}
-
+  }
 
   keyHeld(key) { return !!this.inputKeys[key]; }
 
@@ -188,7 +187,7 @@ export class Player {
     }
   }
 
-  update(projectiles = [], enemies = []) {
+  update(projectiles = [], enemies = [], pickups = []) {
     const now = performance.now();
     if (this.contactIFrames > 0) this.contactIFrames--;
 
@@ -216,6 +215,20 @@ export class Player {
         }
       }
     } else { this.lastDir = null; }
+
+    // --- Magnet effect ---
+    if (this.magnet && this.magnetLevel > 0) {
+      const pullStrength = 0.5 + 0.5 * this.magnetLevel;
+      for (let p of pickups) {
+        const dx = (this.px + TILE_SIZE / 2) - (p.x + p.size / 2);
+        const dy = (this.py + TILE_SIZE / 2) - (p.y + p.size / 2);
+        const dist = Math.hypot(dx, dy);
+        if (dist < 100) { // range
+          p.x += dx / dist * pullStrength;
+          p.y += dy / dist * pullStrength;
+        }
+      }
+    }
 
     if ((keys[" "] || this.attackPressed) && this.fireCooldown <= 0) {
       this.attacking = true;
