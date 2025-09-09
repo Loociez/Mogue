@@ -1,5 +1,6 @@
 import { TILE_SIZE, map } from "./map.js";
 import { Projectile } from "./projectile.js";
+import { resetSkillTree } from "./skilltree.js";
 
 // === Fixed spawn location (change here when needed) ===
 const SPAWN_X = 15;
@@ -52,8 +53,8 @@ export class Player {
     this.attackPressed = false;
 
     // === Crit system ===
-    this.critChance = 0.05;       
-    this.critMultiplier = 2.0; 
+    this.critChance = 0.05;
+    this.critMultiplier = 2.0;
 
     // === Life Leech ===
     this.lifeLeech = 0.1; // 0 = off, 0.2 = 20% of damage dealt heals
@@ -147,7 +148,7 @@ export class Player {
     this.frameTicker = 0;
   }
 
-  reset(x = SPAWN_X, y = SPAWN_Y) {
+ reset(x = SPAWN_X, y = SPAWN_Y) {
     this.x = x;
     this.y = y;
     this.targetX = x;
@@ -161,14 +162,19 @@ export class Player {
     this.queueIndex = 0;
     this.lastDir = null;
     this.dir = "down";
-    this.fireCooldown = 0; // <- add this
-    this.attacking = false; // <- add this
+    this.fireCooldown = 0;
+    this.attacking = false;
+
+    // --- Reset skill tree and player skill stats ---
+    resetSkillTree(this);
+
+    // --- Restore character base stats (damage, projectileType, fireCooldownMax, speed) ---
+    this.setCharacter(this.characterType, this.spriteSlot);
 }
 
 
   keyHeld(key) { return !!this.inputKeys[key]; }
 
-  // === Blink Trail Helper ===
   createBlinkTrail(oldX, oldY, newX, newY) {
     const steps = 5;
     for (let i = 0; i < steps; i++) {
@@ -211,7 +217,6 @@ export class Player {
       }
     } else { this.lastDir = null; }
 
-    // --- Attack ---
     if ((keys[" "] || this.attackPressed) && this.fireCooldown <= 0) {
       this.attacking = true;
       this.fireCooldown = this.fireCooldownMax;
@@ -237,12 +242,10 @@ export class Player {
           this
         );
 
-        // --- Add maxDistance tracking ---
         proj.startX = this.px + TILE_SIZE / 2;
         proj.startY = this.py + TILE_SIZE / 2;
         proj.maxDistance = this.maxDistance;
 
-        // Wrap original update for maxDistance
         const originalUpdate = proj.update.bind(proj);
         proj.update = function(enemies = [], canvas = { width: 800, height: 600 }) {
           originalUpdate(enemies, canvas);
@@ -296,12 +299,10 @@ export class Player {
 
     this.updateAnimation(targetPx, targetPy);
 
-    // --- Update blink trail ---
     this.blinkTrail.forEach(t => t.life--);
     this.blinkTrail = this.blinkTrail.filter(t => t.life > 0);
   }
 
-  // --- Life Leech Helper ---
   healFromDamage(amount) {
     if(this.lifeLeech > 0) {
       const healAmount = Math.floor(amount * this.lifeLeech);
@@ -341,7 +342,6 @@ export class Player {
     const sx = (totalFrameIndex % tilesPerRow) * TILE_SIZE;
     const sy = Math.floor(totalFrameIndex / tilesPerRow) * TILE_SIZE;
 
-    // --- Draw blink trail ---
     for (let t of this.blinkTrail) {
       ctx.globalAlpha = t.alpha * (t.life / 15);
       ctx.drawImage(
@@ -352,7 +352,6 @@ export class Player {
     }
     ctx.globalAlpha = 1;
 
-    // --- Draw player ---
     ctx.drawImage(this.spriteSheet, sx, sy, TILE_SIZE, TILE_SIZE, this.px, this.py, TILE_SIZE, TILE_SIZE);
 
     ctx.fillStyle = "red";
@@ -386,10 +385,9 @@ export class Player {
     if(this.hp<0) this.hp=0;
   }
 
-  // ==== Unlock / Equip New Projectile ====
   unlockProjectile(type) {
-    this.projectileType = type;             // Equip it immediately
+    this.projectileType = type;
     if (!this.unlockedProjectiles) this.unlockedProjectiles = new Set();
-    this.unlockedProjectiles.add(type);     // Keep track of all unlocked projectiles
+    this.unlockedProjectiles.add(type);
   }
 }

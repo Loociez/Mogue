@@ -163,44 +163,71 @@ export const skillTree = {
 };
 
 export function resetSkillTree(player) {
-    if (!player) {
-        console.warn("resetSkillTree called with undefined player!");
-        return; // early exit
-    }
+    if (!player) return console.warn("resetSkillTree called with undefined player!");
 
-    // Reset skill levels
-    skillTree.root.forEach(node => node.level = 0);
-    Object.values(skillTree.nodes).forEach(branch => {
-        branch.forEach(node => node.level = 0);
+    // 1️⃣ Reset all skill nodes
+    const resetNode = node => {
+        node.level = 0;
+        node.selected = false;
+        node.unlocked = false;
+    };
+    skillTree.root.forEach(resetNode);
+    Object.values(skillTree.nodes).forEach(branch => branch.forEach(resetNode));
+
+    // 2️⃣ Reset player stats & points
+    Object.assign(player, {
+        damage: player.baseDamage ?? 0,
+        maxHP: player.baseMaxHP ?? 100,
+        HP: player.maxHP,
+        moveSpeed: player.baseMoveSpeed ?? 1,
+        pierce: 0,
+        critChance: 0,
+        explosiveShot: false,
+        leechPercent: 0,
+        armorPierce: 0,
+        multishot: 0,
+        berserkerRage: 0,
+        rapidFire: false,
+        energyShield: 0,
+        energyShieldCooldown: 0,
+        stoneform: false,
+        magnet: false,
+        dodge: 0,
+        blinkDistance: 0,
+        blinkCooldown: 0,
+        phaseStrike: 0,
+        projectileSpeed: 1,
+        adrenaline: 0,
+        lightningReflexes: false,
+        dashCharges: 0,
+        unlockedSkills: [],
+        skillPoints: 0
     });
 
-    // Reset player stats safely
-    player.damage = player.baseDamage ?? 0;      // Use nullish coalescing
-    player.maxHP = player.baseMaxHP ?? 100;
-    player.HP = player.maxHP;
-    player.moveSpeed = player.baseMoveSpeed ?? 1;
-    player.pierce = 0;
-    player.critChance = 0;
-    player.explosiveShot = false;
-    player.leechPercent = 0;
-    player.armorPierce = 0;
-    player.multishot = 0;
-    player.berserkerRage = 0;
-    player.rapidFire = false;
-    player.energyShield = 0;
-    player.energyShieldCooldown = 0;
-    player.stoneform = false;
-    player.magnet = false;
-    player.dodge = 0;
-    player.blinkDistance = 0;
-    player.blinkCooldown = 0;
-    player.phaseStrike = 0;
-    player.projectileSpeed = 1;
-    player.adrenaline = 0;
-    player.lightningReflexes = false;
-    player.dashCharges = 0;
+    // 3️⃣ Clear the UI completely
+    const grid = document.getElementById("skillGrid");
+    if (grid) while (grid.firstChild) grid.removeChild(grid.firstChild);
 
-    if (player.unlockedSkills) player.unlockedSkills.length = 0;
+    document.querySelectorAll(".skill-node").forEach(el => {
+        el.classList.remove("selected", "unlocked");
+    });
+
+    const ptsLabel = document.getElementById("skillPointsLabel");
+    if (ptsLabel) ptsLabel.textContent = "Points: 0";
+
+    // 4️⃣ Clear any cached state that renderSkillTree may use
+    window.skillTreeCache = {};  // if you have a cache
+    window.selectedSkillNodes = [];
+
+    // 5️⃣ Force a stateless render
+    if (typeof renderSkillTree === "function") renderSkillTree(player);
 }
+
+
+
+
+
+
+
 
 
