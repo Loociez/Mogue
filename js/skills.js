@@ -3,8 +3,78 @@ import { TILE_SIZE } from "./map.js";
 import { Projectile } from "./projectile.js";
 import { skillTree } from "./skilltree.js";
 
+// === Guardian Shield visuals ===
+export function drawGuardianShield(ctx, player) {
+  if (!player.guardianShieldActive) return;
+
+  const radius = 25;
+  const shieldX = player.px + TILE_SIZE/2 + Math.cos(player.shieldAngle) * radius;
+  const shieldY = player.py + TILE_SIZE/2 + Math.sin(player.shieldAngle) * radius;
+
+  ctx.beginPath();
+  ctx.arc(shieldX, shieldY, 15, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(135,206,250,0.6)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(30,144,255,0.9)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+// === Dash Shot helper ===
+export function spawnDashShot(player, projectiles) {
+  if (!player.dashShotActive || !player.isDashing || player.dashFired) return;
+
+  projectiles.push(new Projectile(
+    player.px + TILE_SIZE/2,
+    player.py + TILE_SIZE/2,
+    Math.cos(player.facingAngle) * 5,
+    Math.sin(player.facingAngle) * 5,
+    (player.damage || 1) * 2,
+    50,
+    1,
+    "dashshot",
+    150,
+    player
+  ));
+  player.dashFired = true;
+}
+
+// === Chain Lightning logic ===
+export function applyChainLightning(proj, enemies, projectiles) {
+  if (!proj.owner?.chainLightning) return;
+
+  let jumps = proj.owner.chainLightning;
+  let currentTarget = proj.target;
+
+  while (jumps > 0 && currentTarget) {
+    const next = enemies.find(e =>
+      e !== currentTarget &&
+      Math.hypot(e.px - currentTarget.px, e.py - currentTarget.py) < 120
+    );
+    if (!next) break;
+
+    next.HP -= proj.damage * 0.5;
+
+    // Visual lightning projectile
+    projectiles.push(new Projectile(
+      currentTarget.px, currentTarget.py,
+      (next.px - currentTarget.px) / 20,
+      (next.py - currentTarget.py) / 20,
+      0,
+      10,
+      0,
+      "lightning",
+      10,
+      proj.owner
+    ));
+
+    currentTarget = next;
+    jumps--;
+  }
+}
+
 // === Custom projectile skills ===
-export function createClusterProjectile(player, targetX, targetY) {
+export function createClusterProjectile(player, targetX, targetY, projectiles) {
   const dx = targetX - (player.px + TILE_SIZE / 2);
   const dy = targetY - (player.py + TILE_SIZE / 2);
   const dist = Math.hypot(dx, dy);
@@ -96,12 +166,12 @@ export function phaseStrike(player, target) {
   const damage = Math.max(0, (player.damage || 1) - effectiveArmor);
   target.HP -= damage;
 }
+
 // === Magnet skill logic ===
 export function applyMagnet(player, level, orbs = []) {
   if (!player.magnet || !Array.isArray(orbs)) return;
 
-
-  const range = 1.5 * TILE_SIZE + level * TILE_SIZE; // base + per level
+  const range = 1.5 * TILE_SIZE + level * TILE_SIZE; 
   const speed = 1 + level; 
 
   for (let i = orbs.length - 1; i >= 0; i--) {
@@ -114,17 +184,14 @@ export function applyMagnet(player, level, orbs = []) {
       orb.x += (dx / dist) * speed;
       orb.y += (dy / dist) * speed;
 
-      // Collect when close
       if (dist < 10) {
-        player.gainXp(orb.value);   // ✅ matches your game.js
-        player.gold += orb.value;   // ✅ matches your game.js
+        player.gainXp(orb.value);
+        player.gold += orb.value;
         orbs.splice(i, 1);
       }
     }
   }
 }
-
-
 
 // === Attach skills to skillTree nodes ===
 export function attachSkills(skillTree) {
@@ -137,6 +204,9 @@ export function attachSkills(skillTree) {
         case "attack_11": // Ricochet
           skill.apply = (player) => { player.ricochet = 1; };
           break;
+        case "attack_15": // Chain Lightning
+          skill.apply = (player, lvl) => { if(lvl>0) player.chainLightning = lvl; };
+          break;
         case "speed_10": // Blink
           skill.apply = (player) => { 
             player.blinkDistance = 150;
@@ -144,6 +214,9 @@ export function attachSkills(skillTree) {
             player.unlockedSkills ??= [];
             if (!player.unlockedSkills.includes("blink")) player.unlockedSkills.push("blink");
           };
+          break;
+        case "speed_13": // Multistrike Dash
+          skill.apply = (player) => { player.dashBarrage = true; };
           break;
         case "speed_12": // Phase Strike
           skill.apply = (player) => { player.phaseStrike = 0.25; };
@@ -171,6 +244,15 @@ export function attachSkills(skillTree) {
         case "defense_12": // Stoneform
           skill.apply = (player) => { player.stoneform = true; };
           break;
+        case "defense_13": // Guardian Shield
+          skill.apply = (player) => {
+            player.guardianShieldActive = true;
+            player.shieldAngle = 0;
+          };
+          break;
+        case "defense_14": // Dash Shot
+          skill.apply = (player) => { player.dashShotActive = true; player.dashFired = false; };
+          break;
         case "core_ultimate":
           skill.apply = (player) => {
             player.elementalFury = true;
@@ -195,11 +277,8 @@ export function unlockSkill(player, skillId, skillTree) {
 }
 
 // === Apply all skills each frame ===
-export function applyAllSkills(player, xpOrbs = []) {
-  if (!skillTree || !skillTree.nodes) {
-    console.warn("skillTree is undefined!");
-    return;
-  }
+export function applyAllSkills(player, projectiles = [], enemies = [], xpOrbs = []) {
+  if (!skillTree || !skillTree.nodes) return;
 
   Object.values(skillTree.nodes).forEach(branch => {
     branch.forEach(node => {
@@ -212,5 +291,20 @@ export function applyAllSkills(player, xpOrbs = []) {
   if (player.magnet && player.magnetLevel > 0) {
     applyMagnet(player, player.magnetLevel, xpOrbs);
   }
-}
 
+  if (player.guardianShieldActive) {
+    player.shieldAngle += 0.05;
+  }
+
+  if (player.dashShotActive) {
+    spawnDashShot(player, projectiles);
+  }
+
+  // Apply chain lightning for all projectiles
+  projectiles.forEach(proj => {
+    if (proj.owner?.chainLightning && proj.hasHit) {
+      applyChainLightning(proj, enemies, projectiles);
+      proj.hasHit = false; // prevent double application
+    }
+  });
+}

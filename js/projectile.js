@@ -1,3 +1,5 @@
+import { applyChainLightning } from "./skills.js"; // ✅ add this at the top
+
 export class Projectile {
   constructor(
     x, y, vx, vy, damage,
@@ -128,7 +130,7 @@ export class Projectile {
     if (this.owner?.type === "boss" || this.owner?.isMiniBoss) ctx.fillStyle = "#ff6600";
     else if (this.color) ctx.fillStyle = this.color;
     else {
-      const colors = { normal:"#fff", spread:"#ff0", bouncing:"#0ff", homing:"#f0f", heavy:"#f33", rain:"#00f" };
+      const colors = { normal:"#fff", spread:"#ff0", bouncing:"#0ff", homing:"#f0f", heavy:"#f33", rain:"#00f", lightning:"#9cf" };
       ctx.fillStyle = colors[this.type] || "#fff";
     }
     ctx.beginPath();
@@ -148,7 +150,7 @@ export class Projectile {
     return this.pierce > 0;
   }
 
-  dealDamage(target, projectiles = []) {
+  dealDamage(target, projectiles = [], enemies = []) {
     if (!this.canDamage(target)) return;
 
     if (typeof target.takeDamage === "function") {
@@ -175,6 +177,9 @@ export class Projectile {
 
       // Custom onHit hook
       if (this.onHit) this.onHit(target, projectiles);
+
+      // ✅ Chain Lightning hook
+      applyChainLightning(this, enemies, projectiles);
     }
   }
 }

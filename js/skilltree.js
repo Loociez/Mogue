@@ -127,6 +127,63 @@ export const skillTree = {
         } 
       }
     ],
+    "defense_6": [
+      { 
+        id: "defense_7", 
+        name: "Guardian Shield", 
+        desc: "Summons a protective shield that blocks hits", 
+        requires: "defense_6", 
+        branch: "middle", 
+        level: 0, 
+        maxLevel: 3, 
+        apply: (player, lvl) => { 
+          if (lvl > 0) { 
+              player.guardianShield = lvl; 
+              player.unlockedSkills ??= [];
+              if (!player.unlockedSkills.includes("guardianShield")) 
+                  player.unlockedSkills.push("guardianShield");
+          } 
+        } 
+      }
+    ],
+    "defense_7": [
+      { 
+        id: "defense_8", 
+        name: "Chain Lightning", 
+        desc: "Projectiles arc to nearby enemies", 
+        requires: "defense_7", 
+        branch: "middle", 
+        level: 0, 
+        maxLevel: 3, 
+        apply: (player, lvl) => { 
+          if (lvl > 0) { 
+              player.chainLightning = lvl; 
+              player.unlockedSkills ??= [];
+              if (!player.unlockedSkills.includes("chainLightning")) 
+                  player.unlockedSkills.push("chainLightning");
+          } 
+        } 
+      }
+    ],
+    "defense_8": [
+      { 
+        id: "defense_9", 
+        name: "Dash Shot", 
+        desc: "Dash also fires a powerful projectile", 
+        requires: "defense_8", 
+        branch: "middle", 
+        level: 0, 
+        maxLevel: 3, 
+        apply: (player, lvl) => { 
+          if (lvl > 0) { 
+              player.dashShot = lvl; 
+              player.unlockedSkills ??= [];
+              if (!player.unlockedSkills.includes("dashShot")) 
+                  player.unlockedSkills.push("dashShot");
+          } 
+        } 
+      }
+    ],
 
     // === Speed Branch (Right) ===
     "speed_1": [
@@ -154,11 +211,10 @@ export const skillTree = {
     "speed_4": [
       { id: "speed_5", name: "Momentum", desc: "+20% Projectile Speed", requires: "speed_4", branch: "right", level: 0, maxLevel: 5, 
         apply: (player, lvl) => { 
-    if (lvl > 0) {
-        // Use the current projectileSpeed, not the base
-        player.projectileSpeed = (player.projectileSpeed ?? 1) * (1 + 0.2 * lvl);
-    }
-}
+          if (lvl > 0) {
+            player.projectileSpeed = (player.projectileSpeed ?? 1) * (1 + 0.2 * lvl);
+          }
+        }
       }
     ],
     "speed_5": [
@@ -210,6 +266,9 @@ export function resetSkillTree(player) {
         stoneform: false,
         magnet: false,
         magnetLevel: 0,
+        guardianShield: 0,
+        chainLightning: 0,
+        dashShot: 0,
         dodge: 0,
         blinkDistance: 0,
         blinkCooldown: 0,
