@@ -214,6 +214,20 @@
       border: 1px solid #555;
       touch-action: none;
     }
+
+    /* Mute button styling */
+    #muteBtn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 2000;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid white;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -223,7 +237,7 @@
     <div id="xp">Lv 1 | XP: 0 / 10</div>
     <div id="gold">Gold: 0</div>
     <div id="stats">DMG 5 | ROF 1/s | SPD 1</div>
-	<button id="fullscreenBtn">Go Fullscreen</button>
+    <button id="fullscreenBtn">Go Fullscreen</button>
   </div>
 
   <!-- Upgrade UI -->
@@ -233,12 +247,10 @@
   </div>
   
   <div id="shopUI" style="display:none;">
-  <h2>Shop</h2>
-  <div id="shopItems"></div>
-  <button onclick="closeShop()">Close</button>
-</div>
-
-
+    <h2>Shop</h2>
+    <div id="shopItems"></div>
+    <button onclick="closeShop()">Close</button>
+  </div>
 
   <!-- Character Selection UI -->
   <div id="characterSelect">
@@ -255,28 +267,27 @@
   
   <!-- death screen -->
   <div id="deathOverlay" style="
-  display:none;
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.7);
-  color:white;
-  text-align:center;
-  padding-top:20%;
-  font-family:sans-serif;
-  z-index:1000;
-">
-  <h1>Game Over</h1>
-  <p><button id="restartBtn">Click to Restart</button></p>
-  <p>
-    <a href="https://mirageonlineclassic.com" target="_blank" style="color:#0cf; text-decoration:underline;">
-      Try Mirage Online Classic the hit pixel MMO
-    </a>
-  </p>
-</div>
-
+    display:none;
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.7);
+    color:white;
+    text-align:center;
+    padding-top:20%;
+    font-family:sans-serif;
+    z-index:1000;
+  ">
+    <h1>Game Over</h1>
+    <p><button id="restartBtn">Click to Restart</button></p>
+    <p>
+      <a href="https://mirageonlineclassic.com" target="_blank" style="color:#0cf; text-decoration:underline;">
+        Try Mirage Online Classic the hit pixel MMO
+      </a>
+    </p>
+  </div>
 
   <!-- Mobile Controls -->
   <div id="mobile-controls">
@@ -295,78 +306,99 @@
     <button id="btnSpecial" class="control">★</button>
   </div>
 
-  <script type="module">
-    import { Player } from "./js/player.js";
+  <!-- Background Music -->
+<audio id="bgMusic" src="assets/background.mp3" loop autoplay muted></audio>
+<button id="muteBtn">Mute</button>
 
-    const characterSelect = document.getElementById("characterSelect");
-    const startBtn = document.getElementById("startGame");
-    const spriteDropdown = document.getElementById("spriteDropdown");
-    const spriteSelected = document.getElementById("spriteSelected");
-    const spriteOptions = document.getElementById("spriteOptions");
-    const selectedSpriteCanvas = document.getElementById("selectedSpriteCanvas");
-    const selectedCtx = selectedSpriteCanvas.getContext("2d");
+<script type="module">
+  import { Player } from "./js/player.js";
 
-    const spriteSheet = new Image();
-    spriteSheet.src = "assets/player.png";
+  const characterSelect = document.getElementById("characterSelect");
+  const startBtn = document.getElementById("startGame");
+  const spriteDropdown = document.getElementById("spriteDropdown");
+  const spriteSelected = document.getElementById("spriteSelected");
+  const spriteOptions = document.getElementById("spriteOptions");
+  const selectedSpriteCanvas = document.getElementById("selectedSpriteCanvas");
+  const selectedCtx = selectedSpriteCanvas.getContext("2d");
 
-    const totalSlots = 32;
-    const directions = 4;
+  const bgMusic = document.getElementById("bgMusic");
+  const muteBtn = document.getElementById("muteBtn");
 
-    spriteSheet.onload = () => {
-      for (let i = 0; i < totalSlots; i++) {
-        const optionDiv = document.createElement("div");
-        optionDiv.classList.add("dropdown-option");
-        optionDiv.dataset.slot = i;
+  // Toggle mute/unmute manually
+  muteBtn.addEventListener("click", () => {
+    bgMusic.muted = !bgMusic.muted;
+    muteBtn.textContent = bgMusic.muted ? "Unmute" : "Mute";
+  });
 
-        const canvas = document.createElement("canvas");
-        canvas.width = 32;
-        canvas.height = 32;
-        const ctx = canvas.getContext("2d");
-
-        const frameX = 0;
-        const frameY = i * directions + 1;
-        ctx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
-
-        const label = document.createElement("span");
-        label.textContent = `Character ${i}`;
-
-        optionDiv.appendChild(canvas);
-        optionDiv.appendChild(label);
-        spriteOptions.appendChild(optionDiv);
-
-        optionDiv.addEventListener("click", () => {
-          spriteSelected.textContent = `Character ${i}`;
-          spriteSelected.dataset.slot = i;
-          spriteOptions.style.display = "none";
-
-          selectedCtx.clearRect(0, 0, 32, 32);
-          selectedCtx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
-        });
-      }
-    };
-
-    spriteSelected.addEventListener("click", () => {
-      spriteOptions.style.display = spriteOptions.style.display === "block" ? "none" : "block";
+  // First click anywhere unmutes and starts music
+  document.body.addEventListener("click", () => {
+    if (bgMusic.muted) {
+      bgMusic.muted = false;
+      muteBtn.textContent = "Mute";
+    }
+    bgMusic.play().catch(() => {
+      // ignore play errors
     });
+  }, { once: true });
 
-    let player;
+  const spriteSheet = new Image();
+  spriteSheet.src = "assets/player.png";
 
-    startBtn.addEventListener("click", () => {
-  handleGameOver(); // ✅ clear tree before new run
+  const totalSlots = 32;
+  const directions = 4;
 
-  const slot = parseInt(spriteSelected.dataset.slot || 0);
-  player = new Player("warrior", slot);
-  characterSelect.style.display = "none";
-  window.player = player;
-});
+  spriteSheet.onload = () => {
+    for (let i = 0; i < totalSlots; i++) {
+      const optionDiv = document.createElement("div");
+      optionDiv.classList.add("dropdown-option");
+      optionDiv.dataset.slot = i;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 32;
+      canvas.height = 32;
+      const ctx = canvas.getContext("2d");
+
+      const frameX = 0;
+      const frameY = i * directions + 1;
+      ctx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
+
+      const label = document.createElement("span");
+      label.textContent = `Character ${i}`;
+
+      optionDiv.appendChild(canvas);
+      optionDiv.appendChild(label);
+      spriteOptions.appendChild(optionDiv);
+
+      optionDiv.addEventListener("click", () => {
+        spriteSelected.textContent = `Character ${i}`;
+        spriteSelected.dataset.slot = i;
+        spriteOptions.style.display = "none";
+
+        selectedCtx.clearRect(0, 0, 32, 32);
+        selectedCtx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
+      });
+    }
+  };
+
+  spriteSelected.addEventListener("click", () => {
+    spriteOptions.style.display = spriteOptions.style.display === "block" ? "none" : "block";
+  });
+
+  let player;
+
+  startBtn.addEventListener("click", () => {
+    handleGameOver(); // ✅ clear tree before new run
+    const slot = parseInt(spriteSelected.dataset.slot || 0);
+    player = new Player("warrior", slot);
+    characterSelect.style.display = "none";
+    window.player = player;
+  });
+
+  characterSelect.style.display = "block";
+</script>
 
 
-    characterSelect.style.display = "block";
-  </script>
-
-
-<script type="module" src="js/game.js"></script>
-
+  <script type="module" src="js/game.js"></script>
 
   <script>
     const canvas = document.getElementById("gameCanvas");
@@ -374,6 +406,20 @@
     const mobileControls = document.getElementById('mobile-controls');
     const mobileActions = document.getElementById('mobile-actions');
     const keys = window.keys || {};
+
+    // Background music control
+    const bgMusic = document.getElementById("bgMusic");
+    const muteBtn = document.getElementById("muteBtn");
+
+    muteBtn.addEventListener("click", () => {
+      if (bgMusic.paused) {
+        bgMusic.play();
+        muteBtn.textContent = "Mute";
+      } else {
+        bgMusic.pause();
+        muteBtn.textContent = "Unmute";
+      }
+    });
 
     // Restart button logic
     document.getElementById("restartBtn").addEventListener("click", () => {
@@ -428,22 +474,21 @@
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("orientationchange", resizeCanvas);
     resizeCanvas();
-	
-	const btn = document.getElementById("fullscreenBtn");
 
-btn.addEventListener("click", async () => {
-  const canvas = document.getElementById("gameCanvas");
+    const btn = document.getElementById("fullscreenBtn");
 
-  // Request fullscreen
-  if (canvas.requestFullscreen) await canvas.requestFullscreen();
-  else if (canvas.webkitRequestFullscreen) await canvas.webkitRequestFullscreen();
+    btn.addEventListener("click", async () => {
+      const canvas = document.getElementById("gameCanvas");
 
-  // Optional: lock pointer for mouse/gamepad
-  if (canvas.requestPointerLock) canvas.requestPointerLock();
+      // Request fullscreen
+      if (canvas.requestFullscreen) await canvas.requestFullscreen();
+      else if (canvas.webkitRequestFullscreen) await canvas.webkitRequestFullscreen();
 
-  console.log("Fullscreen & pointer lock active!");
-});
+      // Optional: lock pointer for mouse/gamepad
+      if (canvas.requestPointerLock) canvas.requestPointerLock();
 
+      console.log("Fullscreen & pointer lock active!");
+    });
   </script>
 </body>
 </html>
