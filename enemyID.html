@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Enemy Sprite Viewer</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  canvas { border: 1px solid #333; margin: 5px; }
+  .sprite-container { display: flex; flex-wrap: wrap; }
+  .sprite-box { margin: 5px; text-align: center; }
+</style>
+</head>
+<body>
+<h1>Enemy Sprite Viewer</h1>
+<input type="file" id="fileInput" accept="image/*"><br><br>
+<label for="tileSize">Tile Size:</label>
+<input type="number" id="tileSize" value="32"><br><br>
+<div id="sprites" class="sprite-container"></div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const tileInput = document.getElementById('tileSize');
+const container = document.getElementById('sprites');
+
+fileInput.addEventListener('change', handleFile);
+
+function handleFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const img = new Image();
+  img.onload = () => drawSprites(img);
+  img.src = URL.createObjectURL(file);
+}
+
+function drawSprites(img){
+  container.innerHTML = '';
+  const TILE_SIZE = parseInt(tileInput.value) || 32;
+  const tilesPerRow = Math.floor(img.width / TILE_SIZE);
+
+  // Assume enemy.js mapping: 12 frames per sprite (4 directions * 3 frames)
+  const totalSprites = Math.floor(img.width / TILE_SIZE) * Math.floor(img.height / TILE_SIZE) / 12;
+
+  for(let spriteIndex = 0; spriteIndex < totalSprites; spriteIndex++){
+    const canvas = document.createElement('canvas');
+    canvas.width = TILE_SIZE;
+    canvas.height = TILE_SIZE;
+    const ctx = canvas.getContext('2d');
+
+    // Draw all 4 directions? Here we'll just show "down" frame 0 like Enemy.draw()
+    const baseFrame = 8 + spriteIndex * 12; // same as Enemy.draw()
+    const animFrame = 3; // down direction, first frame in down: down:[3,4,5] -> frame 0 = 3
+    const actualFrame = baseFrame + animFrame;
+
+    const sx = (actualFrame % tilesPerRow) * TILE_SIZE;
+    const sy = Math.floor(actualFrame / tilesPerRow) * TILE_SIZE;
+
+    ctx.drawImage(img, sx, sy, TILE_SIZE, TILE_SIZE, 0, 0, TILE_SIZE, TILE_SIZE);
+
+    const box = document.createElement('div');
+    box.className = 'sprite-box';
+    box.appendChild(canvas);
+    const label = document.createElement('div');
+    label.textContent = `Index ${spriteIndex}`;
+    box.appendChild(label);
+    container.appendChild(box);
+  }
+}
+</script>
+</body>
+</html>

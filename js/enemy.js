@@ -1,6 +1,70 @@
 import { TILE_SIZE, map } from "./map.js";
 import { Projectile } from "./projectile.js";
 
+// Global speed tuning: multiplies every enemy speed value in this file and
+// in game.js's spawn tables. Lower this to slow enemies down further,
+// without having to touch every individual speed number.
+export const ENEMY_SPEED_SCALE = 0.62;
+
+// ============================================================
+// Rarity modifiers (Rare / Elite / Legendary)
+// Introduced starting on map tier 2 (see game.js's MAP_TIERS config, which
+// controls which rarities are even rollable on which map). Applying a
+// rarity scales stats AND physical size/hitbox - bigger and nastier.
+// ============================================================
+export const RARITY_CONFIG = {
+  rare: {
+    label: "Rare", color: "#4da6ff",
+    hpMult: 2.0, dmgMult: 1.3, speedMult: 1.0, sizeMult: 1.3,
+    xpMult: 2.5, goldMult: 2.5
+  },
+  elite: {
+    label: "Elite", color: "#b266ff",
+    hpMult: 4.0, dmgMult: 1.7, speedMult: 1.05, sizeMult: 1.7,
+    xpMult: 5, goldMult: 5
+  },
+  legendary: {
+    label: "Legendary", color: "#ffaa33",
+    hpMult: 8.0, dmgMult: 2.4, speedMult: 1.1, sizeMult: 2.3,
+    xpMult: 12, goldMult: 12
+  }
+};
+
+export function applyRarity(enemy, rarity) {
+  const cfg = RARITY_CONFIG[rarity];
+  if (!cfg) return enemy;
+  enemy.rarity = rarity;
+  enemy.maxHp = Math.round(enemy.maxHp * cfg.hpMult);
+  enemy.hp = enemy.maxHp;
+  enemy.touchDamage = Math.round(enemy.touchDamage * cfg.dmgMult);
+  enemy.speed *= cfg.speedMult;
+  enemy.sizeMult = cfg.sizeMult;
+  enemy.xpMult = cfg.xpMult;
+  enemy.goldMult = cfg.goldMult;
+  return enemy;
+}
+
+// Rolls at most one rarity tier from a chances table like
+// { rare: 0.12, elite: 0.05, legendary: 0.015 }. Checks rarest-first so the
+// odds don't stack unfairly.
+export function rollRarity(chances) {
+  if (!chances) return null;
+  const r = Math.random();
+  if (chances.legendary && r < chances.legendary) return "legendary";
+  if (chances.elite && r < chances.elite) return "elite";
+  if (chances.rare && r < chances.rare) return "rare";
+  return null;
+}
+
+// Larger rarities get a proportionally larger hitbox, expanded evenly
+// around the enemy's normal tile-center so pathfinding/position logic
+// (which is all built around a TILE_SIZE box) doesn't need to change.
+export function getEnemyHitbox(enemy) {
+  const size = TILE_SIZE * (enemy.sizeMult || 1);
+  const offset = (size - TILE_SIZE) / 2;
+  return { x: enemy.px - offset, y: enemy.py - offset, size };
+}
+
 // A* pathfinding helper
 function findPath(startX, startY, endX, endY, map, avoidTile = true) {
   const openSet = [{
@@ -53,7 +117,7 @@ export class Enemy {
     this.type = type;
     this.x = x; this.y = y;
     this.px = x*TILE_SIZE; this.py = y*TILE_SIZE;
-    this.speed = 1; this.size = TILE_SIZE;
+    this.speed = 1 * ENEMY_SPEED_SCALE; this.size = TILE_SIZE;
     this.hp = 25; this.maxHp = 25; this.touchDamage = 6;
 
     this.spriteSheet = new Image();
@@ -84,6 +148,7 @@ export class Enemy {
     this.rainTelegraph = [];
 
     // Shooter/boss properties
+    this.baseProjectileSpeed = 1;
     this.fireProjectile = false;
     this.fireCooldownMax = 0;
     this.fireCooldown = 0;
@@ -97,6 +162,12 @@ export class Enemy {
     this.lateBossCooldown = 0;
     this.lateBossCooldownMax = 180;
     this.lateBossProjectiles = 12;
+
+    // ==== Rarity modifier (rare/elite/legendary), see applyRarity() ====
+    this.rarity = null;
+    this.sizeMult = 1;
+    this.xpMult = 1;
+    this.goldMult = 1;
   }
 
   takeDamage(amount) {
@@ -104,12 +175,34 @@ export class Enemy {
     this.flashTimer = 5;
   }
 
-  update(player, frameCount, projectiles=[]) {
+  update(player, frameCount, projectiles=[], hazards=[]) {
     if(!player) return; // safety check
 
     const dx = player.x - this.x;
     const dy = player.y - this.y;
     const distance = Math.abs(dx) + Math.abs(dy);
+
+    // ==== BERSERKER: permanently enrages once below half HP ====
+    if (this.aiType === "berserker" && !this._enraged && this.maxHp > 0 && this.hp / this.maxHp <= 0.5) {
+      this._enraged = true;
+      this.speed *= 1.6;
+      this.touchDamage = Math.round(this.touchDamage * 1.4);
+      this.flashTimer = 10;
+    }
+
+    // ==== SNIPER: holds a preferred range, backs off if the player closes in ====
+    if (this.aiType === "sniper") {
+      const desiredRange = 6;
+      if (distance < desiredRange - 1) {
+        const fleeX = this.x + Math.sign(this.x - player.x || (Math.random() < 0.5 ? 1 : -1)) * 4;
+        const fleeY = this.y + Math.sign(this.y - player.y || (Math.random() < 0.5 ? 1 : -1)) * 4;
+        this.path = findPath(this.x, this.y, fleeX, fleeY, map, true);
+      } else if (distance > desiredRange + 2) {
+        this.path = findPath(this.x, this.y, player.x, player.y, map, true);
+      } else {
+        this.path = [];
+      }
+    }
 
    // ==== TYPE-SPECIFIC AI ====
 
@@ -210,9 +303,11 @@ if (this.aiType === "ambusher") {
     if(this.attackCooldown > 0) this.attackCooldown--;
 
     // ==== PATHFINDING FOR ALL NON-AMBUSHERS ====
+    // (snipers set their own path every frame above; this block still steps
+    // them along it, it just must not overwrite it with a chase-toward-player path)
     if(this.type !== "ambusher") {
       this.pathUpdateTicker++;
-      if(this.pathUpdateTicker >= 10 || !this.path || this.path.length===0) {
+      if(this.aiType !== "sniper" && (this.pathUpdateTicker >= 10 || !this.path || this.path.length===0)) {
         this.path = findPath(this.x, this.y, player.x, player.y, map, true);
         this.pathUpdateTicker = 0;
       }
@@ -256,6 +351,43 @@ if (this.aiType === "ambusher") {
 
     // ==== MINI-BOSS SPECIALS ====
     if (this.isMiniBoss) {
+      // Tick any active telegraphs EVERY frame, independent of the special
+      // attack's cooldown. (Previously this was nested inside the cooldown
+      // check below, so a telegraph only advanced once every ~2 seconds and
+      // effectively looked stuck on screen for a long time.)
+      if (this.rainTelegraph && this.rainTelegraph.length > 0) {
+        for (let i = this.rainTelegraph.length - 1; i >= 0; i--) {
+          const t = this.rainTelegraph[i];
+          t.countdown--;
+          if (!t.active && t.countdown <= 0) t.active = true;
+          if (t.active) {
+            // Resolve into a ground hazard: deals damage for a short window
+            // then disappears on its own, instead of a projectile.
+            hazards.push({
+              x: t.x, y: t.y, radius: TILE_SIZE * 1.15,
+              life: 75, maxLife: 75, tickInterval: 18, tickTimer: 0,
+              damage: Math.max(1, Math.round(this.touchDamage * 0.5)), owner: this
+            });
+            this.rainTelegraph.splice(i, 1);
+          }
+        }
+      }
+      if (this.telegraph) {
+        this.telegraph.countdown--;
+        if (this.telegraph.countdown <= 0) {
+          const dx = this.telegraph.x - this.px;
+          const dy = this.telegraph.y - this.py;
+          const dist = Math.hypot(dx, dy) || 1;
+          const speed = 5;
+          projectiles.push(new Projectile(
+            this.px + TILE_SIZE / 2, this.py + TILE_SIZE / 2,
+            (dx / dist) * speed, (dy / dist) * speed,
+            this.touchDamage * 1.5, 90, 1, "homing", 300, this
+          ));
+          this.telegraph = null;
+        }
+      }
+
       this.specialCooldown--;
       if (this.specialCooldown<=0) {
         this.specialCooldown = this.specialCooldownMax;
@@ -278,6 +410,9 @@ if (this.aiType === "ambusher") {
             break;
 
           case "rain":
+            // Only spawn a fresh volley of warning telegraphs if the last
+            // one has fully resolved - the actual ticking happens above,
+            // every frame, regardless of this cooldown.
             if (this.rainTelegraph.length===0) {
               for (let i=0;i<5;i++) {
                 const offsetX=(Math.random()-0.5)*TILE_SIZE*3;
@@ -286,33 +421,10 @@ if (this.aiType === "ambusher") {
                 this.rainTelegraph.push({x,y,countdown:60,active:false});
               }
             }
-            for (let i=this.rainTelegraph.length-1;i>=0;i--) {
-              const t=this.rainTelegraph[i];
-              t.countdown--;
-              if(!t.active && t.countdown<=0) t.active=true;
-              if(t.active){
-                projectiles.push(new Projectile(
-                  t.x, t.y, 0, 4,
-                  this.touchDamage*0.8, 120, 1, "rain", 300, this
-                ));
-                this.rainTelegraph.splice(i,1);
-              }
-            }
             break;
 
           case "tracking":
             if(!this.telegraph) this.telegraph={x:player.px, y:player.py, countdown:60};
-            else {
-              this.telegraph.countdown--;
-              if(this.telegraph.countdown<=0){
-                const dx=this.telegraph.x-this.px;
-                const dy=this.telegraph.y-this.py;
-                const dist=Math.hypot(dx,dy)||1;
-                const speed=5;
-                spawnProj((dx/dist)*speed,(dy/dist)*speed,"homing",1.5);
-                this.telegraph=null;
-              }
-            }
             break;
         }
       }
@@ -372,9 +484,13 @@ if (this.aiType === "ambusher") {
   }
 
   draw(ctx) {
+    const size = TILE_SIZE * (this.sizeMult || 1);
+    const offset = (size - TILE_SIZE) / 2;
+    const drawX = this.px - offset, drawY = this.py - offset;
+
     if (!this.spriteSheet.complete || this.spriteSheet.naturalWidth===0){
       ctx.fillStyle=this.flashTimer>0?"#ff5555":"red";
-      ctx.fillRect(this.px,this.py,TILE_SIZE,TILE_SIZE);
+      ctx.fillRect(drawX,drawY,size,size);
       return;
     }
 
@@ -386,20 +502,38 @@ if (this.aiType === "ambusher") {
     const sx=(actualFrame%tilesPerRow)*TILE_SIZE;
     const sy=Math.floor(actualFrame/tilesPerRow)*TILE_SIZE;
 
-    if(this.flashTimer>0) ctx.globalAlpha=0.5;
-    ctx.drawImage(this.spriteSheet,sx,sy,TILE_SIZE,TILE_SIZE,this.px,this.py,TILE_SIZE,TILE_SIZE);
-    if(this.flashTimer>0) ctx.globalAlpha=1;
+    if (this.rarity) {
+      const cfg = RARITY_CONFIG[this.rarity];
+      ctx.save();
+      ctx.shadowColor = cfg.color;
+      ctx.shadowBlur = 10;
+      ctx.drawImage(this.spriteSheet,sx,sy,TILE_SIZE,TILE_SIZE,drawX,drawY,size,size);
+      ctx.restore();
+    } else {
+      if(this.flashTimer>0) ctx.globalAlpha=0.5;
+      ctx.drawImage(this.spriteSheet,sx,sy,TILE_SIZE,TILE_SIZE,drawX,drawY,size,size);
+      if(this.flashTimer>0) ctx.globalAlpha=1;
+    }
 
     ctx.fillStyle="red";
-    ctx.fillRect(this.px,this.py-6,TILE_SIZE,4);
+    ctx.fillRect(drawX,drawY-6,size,4);
     ctx.fillStyle="green";
-    ctx.fillRect(this.px,this.py-6,TILE_SIZE*(this.hp/this.maxHp),4);
+    ctx.fillRect(drawX,drawY-6,size*(this.hp/this.maxHp),4);
+
+    if (this.rarity) {
+      const cfg = RARITY_CONFIG[this.rarity];
+      ctx.fillStyle = cfg.color;
+      ctx.font = "bold 12px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(cfg.label.toUpperCase(), drawX+size/2, drawY-10);
+      ctx.textAlign = "left";
+    }
 
     if(this.isMiniBoss){
       ctx.fillStyle="yellow";
       ctx.font="bold 12px Arial";
       ctx.textAlign="center";
-      ctx.fillText("MINI-BOSS",this.px+TILE_SIZE/2,this.py-10);
+      ctx.fillText("MINI-BOSS",drawX+size/2,drawY-10-(this.rarity?14:0));
       ctx.textAlign="left";
     }
 
@@ -407,20 +541,20 @@ if (this.aiType === "ambusher") {
       ctx.fillStyle="purple";
       ctx.font="bold 14px Arial";
       ctx.textAlign="center";
-      ctx.fillText("BOSS",this.px+TILE_SIZE/2,this.py-10);
+      ctx.fillText("BOSS",drawX+size/2,drawY-10);
       ctx.textAlign="left";
     }
   }
 }
 
 // === Mini-boss spawner ===
-export function spawnMiniBoss(x, y, type="classic", spriteIndex=23){
+export function spawnMiniBoss(x, y, type="classic", spriteIndex=23, powerMult=1){
   const mb = new Enemy(x, y, spriteIndex, "mini-boss");
   mb.isMiniBoss = true;
-  mb.maxHp = 500; 
+  mb.maxHp = Math.round(500 * powerMult);
   mb.hp = mb.maxHp;
-  mb.touchDamage = 20; 
-  mb.speed = 0.7;
+  mb.touchDamage = Math.round(20 * powerMult);
+  mb.speed = 0.7 * ENEMY_SPEED_SCALE;
   mb.specialCooldownMax = 120;
   mb.specialCooldown = mb.specialCooldownMax;
   mb.specialType = type;
@@ -429,13 +563,13 @@ export function spawnMiniBoss(x, y, type="classic", spriteIndex=23){
 }
 
 // === Boss spawner ===
-export function spawnBoss(x, y, type="mega", isLate=false, spriteIndex=17){
+export function spawnBoss(x, y, type="mega", isLate=false, spriteIndex=17, powerMult=1){
   const boss = new Enemy(x, y, spriteIndex, "boss");
   boss.isMiniBoss = false;
-  boss.maxHp = isLate ? 5000 : 2000;
+  boss.maxHp = Math.round((isLate ? 5000 : 2000) * powerMult);
   boss.hp = boss.maxHp;
-  boss.touchDamage = isLate ? 80 : 50;
-  boss.speed = isLate ? 0.7 : 0.5;
+  boss.touchDamage = Math.round((isLate ? 80 : 50) * powerMult);
+  boss.speed = (isLate ? 0.7 : 0.5) * ENEMY_SPEED_SCALE;
 
   // Shooter/boss projectile settings
   boss.fireProjectile = true;
@@ -452,4 +586,3 @@ export function spawnBoss(x, y, type="mega", isLate=false, spriteIndex=17){
 
   return boss;
 }
-

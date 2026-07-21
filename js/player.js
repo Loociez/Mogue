@@ -1,6 +1,8 @@
 import { TILE_SIZE, map } from "./map.js";
 import { Projectile } from "./projectile.js";
 import { resetSkillTree } from "./skilltree.js";
+import { explodeAt } from "./skills.js";
+import { drawEffect } from "./effects.js";
 
 // === Fixed spawn location (change here when needed) ===
 const SPAWN_X = 15;
@@ -46,7 +48,8 @@ export class Player {
 
     // Misc
     this.contactIFrames = 0;
-    this.pickupRange = 16;
+    this.basePickupRange = 16;
+    this.pickupRange = this.basePickupRange;
 
     // Input state
     this.inputKeys = {};
@@ -56,11 +59,61 @@ export class Player {
     this.critChance = 0.05;
     this.critMultiplier = 2.0;
 
-    // === Life Leech ===
-    this.lifeLeech = 0.1; // 0 = off, 0.2 = 20% of damage dealt heals
-
     // === Blink Trail ===
     this.blinkTrail = [];
+
+    // === Skill-tree driven stats (all start at 0/off; skilltree.resetSkillTree
+    // also resets these at run-start, this is just so Player is well-formed
+    // even before that runs) ===
+    this.lifeLeech = 0;
+    this.dodge = 0;
+    this.armorPierce = 0;
+    this.phaseStrike = 0;
+    this.multishot = 0;
+    this.berserkerRage = 0;
+    this.adrenaline = 0;
+    this.rapidFire = false;
+    this.hpRegen = 0;
+    this.hpRegenTimer = 0;
+
+    this.explosiveShot = false;
+    this.explosiveShotPower = 0;
+    this.ricochet = 0;
+    this.clusterProjectile = false;
+    this.clusterShards = 5;
+
+    this.energyShield = 0;
+    this.energyShieldMax = 0;
+    this.energyShieldCooldown = 0;
+    this.energyShieldCooldownMax = 1800;
+
+    this.stoneform = false;
+    this.stoneformActive = false;
+    this.stoneformTimer = 0;
+    this.stoneformCooldown = 0;
+    this.stoneformCooldownMax = 1200;
+    this.stoneformDuration = 0;
+
+    this.magnet = false;
+
+    this.guardianShieldMaxCharges = 0;
+    this.guardianShieldCharges = 0;
+    this.guardianShieldRecharge = 0;
+    this.guardianShieldRechargeMax = 480;
+    this.shieldAngle = 0;
+
+    this.chainLightning = 0;
+    this.dashShot = 0;
+
+    this.blinkDistance = 0;
+    this.blinkCooldown = 0;
+    this.blinkCooldownTimer = 0;
+    this.blinkChargesMax = 1;
+    this.blinkCharges = 1;
+    this.lightningReflexes = false;
+
+    this.unlockedSkills = [];
+    this.skillPoints = 0;
 
     // Keyboard events
     window.addEventListener("keydown", e => { this.inputKeys[e.key.toLowerCase()] = true; });
@@ -102,37 +155,49 @@ export class Player {
 
     switch (characterType) {
       case "warrior":
-        this.baseDamage = 18;
-        this.baseSpeed = 4;
-        this.baseHp = 120;
+        // Heavy Tracker: slow to turn but hits like a truck. Every shot locks
+        // onto the nearest enemy and gradually curves toward it.
+        this.baseDamage = 20;
+        this.baseSpeed = 2.6;
+        this.baseHp = 130;
         this.projectileType = "normal";
         this.projectileSpeed = 6;
-        this.projectileLife = 60;
-        this.maxDistance = 250;
-        this.pierce = 1;
-        this.fireCooldownMax = 20;
+        this.projectileLife = 70;
+        this.maxDistance = 260;
+        this.pierce = 2;
+        this.fireCooldownMax = 22;
+        this.homingTurnRate = 0.055;
+        this.homingStyle = "single";
         break;
       case "archer":
-        this.baseDamage = 12;
-        this.baseSpeed = 4.5;
-        this.baseHp = 100;
+        // Volley Tracker: fires a spread of arrows that each lock onto a
+        // *different* nearby enemy, so a single volley can tag multiple foes.
+        this.baseDamage = 11;
+        this.baseSpeed = 3.0;
+        this.baseHp = 95;
         this.projectileType = "spread";
-        this.projectileSpeed = 6;
+        this.projectileSpeed = 6.5;
         this.projectileLife = 60;
-        this.maxDistance = 250;
+        this.maxDistance = 260;
         this.pierce = 1;
-        this.fireCooldownMax = 20;
+        this.fireCooldownMax = 18;
+        this.homingTurnRate = 0.15;
+        this.homingStyle = "multi";
         break;
       case "mage":
-        this.baseDamage = 10;
-        this.baseSpeed = 4;
-        this.baseHp = 90;
+        // Precision Tracker: single bolt, turns fast enough to reliably hit
+        // whatever it locks onto. Squishiest class, but rarely misses.
+        this.baseDamage = 11;
+        this.baseSpeed = 2.5;
+        this.baseHp = 85;
         this.projectileType = "homing";
-        this.projectileSpeed = 5;
-        this.projectileLife = 80;
-        this.maxDistance = 250;
+        this.projectileSpeed = 5.5;
+        this.projectileLife = 85;
+        this.maxDistance = 280;
         this.pierce = 1;
         this.fireCooldownMax = 20;
+        this.homingTurnRate = 0.27;
+        this.homingStyle = "single";
         break;
     }
 
@@ -164,6 +229,12 @@ export class Player {
     this.dir = "down";
     this.fireCooldown = 0;
     this.attacking = false;
+    this.pickupRange = this.basePickupRange;
+
+    this.level = 1;
+    this.xp = 0;
+    this.xpToNext = 10;
+    this.gold = 0;
 
     // --- Reset skill tree and player skill stats ---
     resetSkillTree(this);
@@ -187,9 +258,55 @@ export class Player {
     }
   }
 
-  update(projectiles = [], enemies = [], pickups = []) {
+  update(projectiles = [], enemies = [], pickups = [], visualEffects = []) {
     const now = performance.now();
     if (this.contactIFrames > 0) this.contactIFrames--;
+
+    // === Stoneform: auto-trigger brief invulnerability when critically low ===
+    if (this.stoneformCooldown > 0) this.stoneformCooldown--;
+    if (this.stoneformActive) {
+      this.stoneformTimer--;
+      if (this.stoneformTimer <= 0) this.stoneformActive = false;
+    } else if (this.stoneform && this.stoneformCooldown <= 0 && this.hp > 0 && this.hp / this.maxHp <= 0.25) {
+      this.stoneformActive = true;
+      this.stoneformTimer = this.stoneformDuration || 60;
+      this.stoneformCooldown = this.stoneformCooldownMax || 1200;
+      this.hp = Math.min(this.maxHp, this.hp + Math.floor(this.maxHp * 0.1));
+      visualEffects.push({ x: this.px + TILE_SIZE / 2, y: this.py + TILE_SIZE / 2, radius: TILE_SIZE * 1.5, life: 25, maxLife: 25, sprite: "stoneformRing" });
+    }
+
+    // === Energy Shield recharge ===
+    if (this.energyShieldMax > 0 && this.energyShield < this.energyShieldMax) {
+      this.energyShieldCooldown--;
+      if (this.energyShieldCooldown <= 0) {
+        this.energyShield = this.energyShieldMax;
+        this.energyShieldCooldown = this.energyShieldCooldownMax;
+      }
+    }
+
+    // === Guardian Shield recharge ===
+    if (this.guardianShieldMaxCharges > 0 && this.guardianShieldCharges < this.guardianShieldMaxCharges) {
+      this.guardianShieldRecharge--;
+      if (this.guardianShieldRecharge <= 0) {
+        this.guardianShieldCharges++;
+        this.guardianShieldRecharge = this.guardianShieldRechargeMax;
+      }
+    }
+
+    // === HP Regen ===
+    if (this.hpRegen > 0 && this.hp > 0 && this.hp < this.maxHp) {
+      this.hpRegenTimer++;
+      if (this.hpRegenTimer >= 60) {
+        this.hp = Math.min(this.maxHp, this.hp + this.hpRegen);
+        this.hpRegenTimer = 0;
+      }
+    }
+
+    // === Blink charge recovery ===
+    if (this.blinkCooldownTimer > 0) this.blinkCooldownTimer--;
+    if (this.blinkCharges < (this.blinkChargesMax || 1) && this.blinkCooldownTimer <= 0) {
+      this.blinkCharges = this.blinkChargesMax || 1;
+    }
 
     const keys = this.inputKeys;
     let direction = null;
@@ -216,68 +333,154 @@ export class Player {
       }
     } else { this.lastDir = null; }
 
-    // --- Magnet effect ---
-    if (this.magnet && this.magnetLevel > 0) {
-      const pullStrength = 0.5 + 0.5 * this.magnetLevel;
+    // --- Magnet effect (base pickup range is boosted directly by the skill;
+    // this is what actually pulls orbs in on top of the pull-when-in-range
+    // logic that already lives in the main game loop) ---
+    if (this.magnet) {
+      const pullStrength = 1.2;
       for (let p of pickups) {
-        const dx = (this.px + TILE_SIZE / 2) - (p.x + p.size / 2);
-        const dy = (this.py + TILE_SIZE / 2) - (p.y + p.size / 2);
+        const dx = (this.px + TILE_SIZE / 2) - (p.x + (p.size || 0) / 2);
+        const dy = (this.py + TILE_SIZE / 2) - (p.y + (p.size || 0) / 2);
         const dist = Math.hypot(dx, dy);
-        if (dist < 100) { // range
-          p.x += dx / dist * pullStrength;
-          p.y += dy / dist * pullStrength;
+        if (dist < this.pickupRange && dist > 0) {
+          p.x += (dx / dist) * pullStrength;
+          p.y += (dy / dist) * pullStrength;
         }
       }
     }
 
-    if ((keys[" "] || this.attackPressed) && this.fireCooldown <= 0) {
-      this.attacking = true;
-      this.fireCooldown = this.fireCooldownMax;
+    // === Attack speed modifiers: berserker (low hp) and adrenaline (full hp) ===
+    let cooldownMult = 1;
+    if (this.berserkerRage > 0 && this.hp / this.maxHp <= 0.5) cooldownMult -= this.berserkerRage;
+    if (this.adrenaline > 0 && this.hp >= this.maxHp) cooldownMult -= this.adrenaline;
+    cooldownMult = Math.max(0.25, cooldownMult);
 
-      const spawnProjectile = (vx, vy, type = this.projectileType) => {
-        let dmg = this.damage;
-        let isCrit = false;
-        if (Math.random() < this.critChance) {
-            dmg = Math.floor(dmg * this.critMultiplier);
-            isCrit = true;
-        }
+    const spawnProjectile = (vx, vy, type = this.projectileType, presetTarget = null) => {
+      let dmg = this.damage;
+      const bonusMult = 1 + (this.armorPierce || 0) + (this.phaseStrike || 0);
+      dmg = Math.round(dmg * bonusMult);
 
-        const proj = new Projectile(
-          this.px + TILE_SIZE / 2,
-          this.py + TILE_SIZE / 2,
-          vx,
-          vy,
-          dmg,
-          this.projectileLife,
-          this.pierce,
-          type,
-          this.maxDistance,
-          this
+      let isCrit = false;
+      if (Math.random() < this.critChance) {
+        dmg = Math.floor(dmg * this.critMultiplier);
+        isCrit = true;
+      }
+
+      const proj = new Projectile(
+        this.px + TILE_SIZE / 2,
+        this.py + TILE_SIZE / 2,
+        vx,
+        vy,
+        dmg,
+        this.projectileLife,
+        this.pierce,
+        type,
+        this.maxDistance,
+        this
+      );
+
+      proj.startX = this.px + TILE_SIZE / 2;
+      proj.startY = this.py + TILE_SIZE / 2;
+      proj.maxDistance = this.maxDistance;
+
+      // Every class homes now, just with a different feel: warrior turns
+      // slowly onto the nearest target, mage turns fast and precise, and
+      // archer's volley (see fireVolley) locks each shot to a different
+      // enemy via presetTarget.
+      if (this.homingTurnRate > 0) {
+        proj.homingTurnRate = this.homingTurnRate;
+        proj.presetTarget = presetTarget;
+      }
+
+      const originalUpdate = proj.update.bind(proj);
+      proj.update = function(enemiesArg = [], canvas = { width: 800, height: 600 }, projectilesArg = []) {
+        originalUpdate(enemiesArg, canvas, projectilesArg);
+        const dx = this.x - this.startX;
+        const dy = this.y - this.startY;
+        if (Math.hypot(dx, dy) >= this.maxDistance) this.life = 0;
+      };
+
+      if (isCrit) {
+        proj.color = "#ffff00";
+        proj.isCrit = true;
+        proj.critText = `CRIT! ${dmg}`;
+      }
+
+      // --- Explosive Shot: blow up on expiry, damaging nearby enemies ---
+      if (this.explosiveShot) {
+        proj.onExpire = (projArray) => {
+          const blastRadius = TILE_SIZE * 1.8;
+          explodeAt(proj.x, proj.y, blastRadius, dmg * (this.explosiveShotPower || 0.4), enemies, null, this);
+          visualEffects.push({ x: proj.x, y: proj.y, radius: blastRadius, life: 20, maxLife: 20, sprite: "explosionBurst" });
+        };
+      }
+
+      // --- Cluster Projectile: splits into shards on hit or expiry ---
+      if (this.clusterProjectile) {
+        const shardCount = this.clusterShards || 5;
+        const splitFn = (projArray) => {
+          for (let i = 0; i < shardCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            projArray.push(new Projectile(
+              proj.x, proj.y,
+              Math.cos(angle) * 3, Math.sin(angle) * 3,
+              Math.max(1, Math.floor(dmg * 0.4)),
+              30, 1, "normal", 100, this
+            ));
+          }
+        };
+        proj.onExpire = splitFn;
+        proj.onHit = (target, projArray) => { splitFn(projArray); proj.onExpire = null; };
+      }
+
+      // --- Ricochet: on hit, spawn a bounce shot toward a new random angle ---
+      if (this.ricochet > 0) {
+        let bouncesLeft = this.ricochet;
+        const previousOnHit = proj.onHit;
+        proj.onHit = (target, projArray) => {
+          if (previousOnHit) previousOnHit(target, projArray);
+          if (bouncesLeft > 0) {
+            bouncesLeft--;
+            const angle = Math.random() * Math.PI * 2;
+            const spd = Math.hypot(proj.vx, proj.vy) || 3;
+            projArray.push(new Projectile(
+              proj.x, proj.y,
+              Math.cos(angle) * spd, Math.sin(angle) * spd,
+              Math.max(1, Math.floor(dmg * 0.6)),
+              40, 1, type, 150, this
+            ));
+          }
+        };
+      }
+
+      projectiles.push(proj);
+    };
+
+    const fireVolley = () => {
+      const shotCount = 1 + (this.multishot || 0);
+
+      // Build a distance-sorted target list once per volley so multi-shot
+      // volleys (archer's "Volley Tracker" style) can hand each projectile a
+      // different enemy to lock onto instead of everyone dogpiling the same one.
+      let targetPool = [];
+      if (this.homingTurnRate > 0 && enemies.length > 0) {
+        targetPool = [...enemies].sort((a, b) =>
+          Math.hypot(a.px - this.px, a.py - this.py) - Math.hypot(b.px - this.px, b.py - this.py)
         );
-
-        proj.startX = this.px + TILE_SIZE / 2;
-        proj.startY = this.py + TILE_SIZE / 2;
-        proj.maxDistance = this.maxDistance;
-
-        const originalUpdate = proj.update.bind(proj);
-        proj.update = function(enemies = [], canvas = { width: 800, height: 600 }) {
-          originalUpdate(enemies, canvas);
-          const dx = this.x - this.startX;
-          const dy = this.y - this.startY;
-          if(Math.hypot(dx, dy) >= this.maxDistance) this.life = 0;
+      }
+      let targetCursor = 0;
+      const nextTarget = () => {
+        if (targetPool.length === 0) return null;
+        if (this.homingStyle === "multi") {
+          const t = targetPool[targetCursor % targetPool.length];
+          targetCursor++;
+          return t;
         }
-
-        if (isCrit) {
-            proj.color = "#ffff00";     
-            proj.isCrit = true;         
-            proj.critText = `CRIT! ${dmg}`;
-        }
-
-        projectiles.push(proj);
+        return targetPool[0]; // "single" style: everyone goes for the nearest
       };
 
       switch (this.projectileType) {
-        case "spread":
+        case "spread": {
           let baseAngle = 0;
           switch (this.dir) {
             case "up": baseAngle = -Math.PI / 2; break;
@@ -286,17 +489,39 @@ export class Player {
             case "right": baseAngle = 0; break;
           }
           const spread = Math.PI / 12;
-          [-1,0,1].forEach(offset => {
+          const spreadOffsets = [-1, 0, 1];
+          for (let i = 1; i <= shotCount - 1; i++) spreadOffsets.push(1.5 + i * 0.5, -(1.5 + i * 0.5));
+          spreadOffsets.forEach(offset => {
             const angle = baseAngle + offset * spread;
-            spawnProjectile(Math.cos(angle)*this.projectileSpeed, Math.sin(angle)*this.projectileSpeed, "spread");
+            spawnProjectile(Math.cos(angle) * this.projectileSpeed, Math.sin(angle) * this.projectileSpeed, "spread", nextTarget());
           });
           break;
+        }
+        default: {
+          let vx = 0, vy = 0;
+          switch (this.dir) { case "up": vy = -this.projectileSpeed; break; case "down": vy = this.projectileSpeed; break; case "left": vx = -this.projectileSpeed; break; case "right": vx = this.projectileSpeed; break; }
+          spawnProjectile(vx, vy, this.projectileType, nextTarget());
 
-        default:
-          let vx=0, vy=0;
-          switch (this.dir) { case "up": vy=-this.projectileSpeed; break; case "down": vy=this.projectileSpeed; break; case "left": vx=-this.projectileSpeed; break; case "right": vx=this.projectileSpeed; break; }
-          spawnProjectile(vx, vy, this.projectileType);
+          if (shotCount > 1) {
+            const baseAngle = Math.atan2(vy, vx);
+            const spd = Math.hypot(vx, vy);
+            const step = 0.18;
+            for (let i = 1; i < shotCount; i++) {
+              const off = (i % 2 === 0 ? 1 : -1) * Math.ceil(i / 2) * step;
+              const angle = baseAngle + off;
+              spawnProjectile(Math.cos(angle) * spd, Math.sin(angle) * spd, this.projectileType, nextTarget());
+            }
+          }
+        }
       }
+    };
+
+    if ((keys[" "] || this.attackPressed) && this.fireCooldown <= 0) {
+      this.attacking = true;
+      this.fireCooldown = Math.max(3, Math.round(this.fireCooldownMax * cooldownMult));
+
+      fireVolley();
+      if (this.rapidFire) fireVolley();
 
       this.attackPressed = false;
     } else { this.attacking = false; }
@@ -317,7 +542,7 @@ export class Player {
   }
 
   healFromDamage(amount) {
-    if(this.lifeLeech > 0) {
+    if (this.lifeLeech > 0) {
       const healAmount = Math.floor(amount * this.lifeLeech);
       this.hp = Math.min(this.hp + healAmount, this.maxHp);
     }
@@ -365,12 +590,25 @@ export class Player {
     }
     ctx.globalAlpha = 1;
 
+    if (this.stoneformActive) ctx.globalAlpha = 0.6;
     ctx.drawImage(this.spriteSheet, sx, sy, TILE_SIZE, TILE_SIZE, this.px, this.py, TILE_SIZE, TILE_SIZE);
+    ctx.globalAlpha = 1;
+
+    if (this.stoneformActive) {
+      drawEffect(ctx, "stoneformRing", this.px + TILE_SIZE / 2, this.py + TILE_SIZE / 2, TILE_SIZE * 1.4, 0, "#d8d8d8", 0.7);
+    } else if (this.energyShieldMax > 0 && this.energyShield > 0) {
+      drawEffect(ctx, "energyShieldRing", this.px + TILE_SIZE / 2, this.py + TILE_SIZE / 2, TILE_SIZE * 1.25, 0, "#5fd0ff", 0.6);
+    }
 
     ctx.fillStyle = "red";
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE, 4);
     ctx.fillStyle = "green";
     ctx.fillRect(this.px, this.py - 6, TILE_SIZE * (this.hp / this.maxHp), 4);
+
+    if (this.energyShieldMax > 0) {
+      ctx.fillStyle = "rgba(80,180,255,0.4)";
+      ctx.fillRect(this.px, this.py - 10, TILE_SIZE * (this.energyShield / this.energyShieldMax), 3);
+    }
   }
 
   gainXp(amount, levelUpCallback){
@@ -387,12 +625,37 @@ export class Player {
     this.maxHp+=10;
     this.hp=this.maxHp;
     this.damage+=2;
-    this.speed+=0.2;
+    this.speed+=0.13;
     this.xpToNext=Math.floor(this.xpToNext*1.25);
   }
 
   takeDamage(amount){
     if(this.contactIFrames>0) return;
+    if(this.stoneformActive) return; // total invulnerability while active
+
+    // Dodge: avoid the hit entirely
+    if (this.dodge > 0 && Math.random() < this.dodge) {
+      if (this.lightningReflexes) this.fireCooldown = 0;
+      return;
+    }
+
+    // Guardian Shield: blocks one hit completely, then needs to recharge
+    if (this.guardianShieldCharges > 0) {
+      this.guardianShieldCharges--;
+      this.guardianShieldRecharge = this.guardianShieldRechargeMax;
+      this.contactIFrames = 15;
+      return;
+    }
+
+    // Energy Shield: absorbs damage before HP
+    if (this.energyShield > 0) {
+      const absorbed = Math.min(this.energyShield, amount);
+      this.energyShield -= absorbed;
+      amount -= absorbed;
+      this.energyShieldCooldown = this.energyShieldCooldownMax;
+      if (amount <= 0) { this.contactIFrames = 30; return; }
+    }
+
     this.hp-=amount;
     this.contactIFrames=30;
     if(this.hp<0) this.hp=0;
@@ -402,5 +665,23 @@ export class Player {
     this.projectileType = type;
     if (!this.unlockedProjectiles) this.unlockedProjectiles = new Set();
     this.unlockedProjectiles.add(type);
+  }
+
+  // Applies persistent meta-progression bonuses (see meta.js) once at the
+  // start of a run, on top of the freshly-reset class stats. Gold/XP
+  // multipliers are stored for game.js to apply when awarding rewards
+  // during the run, rather than being a stat on Player itself.
+  applyMetaBonuses(bonuses) {
+    if (!bonuses) return;
+    this.maxHp = Math.round(this.maxHp * bonuses.hpMult);
+    this.hp = this.maxHp;
+    this.damage = Math.round(this.damage * bonuses.dmgMult);
+    this.speed *= bonuses.speedMult;
+    this.basePickupRange = (this.basePickupRange || 16) + bonuses.pickupFlat;
+    this.pickupRange = this.basePickupRange;
+    this.critChance = Math.min(1, this.critChance + bonuses.critFlat);
+    this.gold += bonuses.startGoldFlat;
+    this._metaGoldMult = bonuses.goldMult;
+    this._metaXpMult = bonuses.xpMult;
   }
 }

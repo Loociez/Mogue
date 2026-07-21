@@ -75,6 +75,19 @@
       margin: 0 auto;
     }
 
+    #hud button {
+      background: #222;
+      color: #fff;
+      border: 1px solid white;
+      border-radius: 4px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    #hud button:hover { background: #444; }
+    #shopBtn:hover { background: #5a4a1a; }
+    #skillsBtn:hover { background: #1a4a2a; }
+
     /* Character Selection UI */
     #characterSelect {
       position: absolute;
@@ -214,6 +227,14 @@
       border: 1px solid #555;
       touch-action: none;
     }
+    #mobile-actions #btnSpecial,
+    #mobile-actions #btnShop,
+    #mobile-actions #btnSkills {
+      width: 52px;
+      height: 52px;
+      font-size: 20px;
+      align-self: flex-end;
+    }
 
     /* Mute button styling */
     #muteBtn {
@@ -237,7 +258,11 @@
     <div id="xp">Lv 1 | XP: 0 / 10</div>
     <div id="gold">Gold: 0</div>
     <div id="stats">DMG 5 | ROF 1/s | SPD 1</div>
-    <button id="fullscreenBtn">Go Fullscreen</button>
+    <div style="display:flex; gap:6px;">
+      <button id="shopBtn" title="Open Shop (K)">🛒 Shop</button>
+      <button id="skillsBtn" title="Open Skill Tree (L)">🌳 Skills</button>
+      <button id="fullscreenBtn">Go Fullscreen</button>
+    </div>
   </div>
 
   <!-- Upgrade UI -->
@@ -252,16 +277,8 @@
     <button onclick="closeShop()">Close</button>
   </div>
 
-  <!-- Character Selection UI -->
-  <div id="characterSelect">
-    <h2>Select Your Character</h2>
-    <canvas id="selectedSpriteCanvas" width="32" height="32"></canvas>
-    <div id="spriteDropdown" class="dropdown">
-      <div id="spriteSelected">Select Character</div>
-      <div id="spriteOptions" class="dropdown-options"></div>
-    </div>
-    <button id="startGame">Start Game</button>
-  </div>
+  <!-- Character Selection UI (contents built dynamically by game.js) -->
+  <div id="characterSelect"></div>
 
   <canvas id="gameCanvas" width="1024" height="768"></canvas>
   
@@ -281,6 +298,7 @@
     z-index:1000;
   ">
     <h1>Game Over</h1>
+    <p id="essenceEarned" style="color:#c9a3ff; font-size:16px;"></p>
     <p><button id="restartBtn">Click to Restart</button></p>
     <p>
       <a href="https://mirageonlineclassic.com" target="_blank" style="color:#0cf; text-decoration:underline;">
@@ -303,100 +321,14 @@
 
   <div id="mobile-actions">
     <button id="btnAttack" class="control">⚔</button>
-    <button id="btnSpecial" class="control">★</button>
+    <button id="btnSpecial" class="control" title="Blink">★</button>
+    <button id="btnShop" class="control" title="Shop">🛒</button>
+    <button id="btnSkills" class="control" title="Skill Tree">🌳</button>
   </div>
 
   <!-- Background Music -->
 <audio id="bgMusic" src="assets/background.mp3" loop autoplay muted></audio>
 <button id="muteBtn">Mute</button>
-
-<script type="module">
-  import { Player } from "./js/player.js";
-
-  const characterSelect = document.getElementById("characterSelect");
-  const startBtn = document.getElementById("startGame");
-  const spriteDropdown = document.getElementById("spriteDropdown");
-  const spriteSelected = document.getElementById("spriteSelected");
-  const spriteOptions = document.getElementById("spriteOptions");
-  const selectedSpriteCanvas = document.getElementById("selectedSpriteCanvas");
-  const selectedCtx = selectedSpriteCanvas.getContext("2d");
-
-  const bgMusic = document.getElementById("bgMusic");
-  const muteBtn = document.getElementById("muteBtn");
-
-  // Toggle mute/unmute manually
-  muteBtn.addEventListener("click", () => {
-    bgMusic.muted = !bgMusic.muted;
-    muteBtn.textContent = bgMusic.muted ? "Unmute" : "Mute";
-  });
-
-  // First click anywhere unmutes and starts music
-  document.body.addEventListener("click", () => {
-    if (bgMusic.muted) {
-      bgMusic.muted = false;
-      muteBtn.textContent = "Mute";
-    }
-    bgMusic.play().catch(() => {
-      // ignore play errors
-    });
-  }, { once: true });
-
-  const spriteSheet = new Image();
-  spriteSheet.src = "assets/player.png";
-
-  const totalSlots = 32;
-  const directions = 4;
-
-  spriteSheet.onload = () => {
-    for (let i = 0; i < totalSlots; i++) {
-      const optionDiv = document.createElement("div");
-      optionDiv.classList.add("dropdown-option");
-      optionDiv.dataset.slot = i;
-
-      const canvas = document.createElement("canvas");
-      canvas.width = 32;
-      canvas.height = 32;
-      const ctx = canvas.getContext("2d");
-
-      const frameX = 0;
-      const frameY = i * directions + 1;
-      ctx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
-
-      const label = document.createElement("span");
-      label.textContent = `Character ${i}`;
-
-      optionDiv.appendChild(canvas);
-      optionDiv.appendChild(label);
-      spriteOptions.appendChild(optionDiv);
-
-      optionDiv.addEventListener("click", () => {
-        spriteSelected.textContent = `Character ${i}`;
-        spriteSelected.dataset.slot = i;
-        spriteOptions.style.display = "none";
-
-        selectedCtx.clearRect(0, 0, 32, 32);
-        selectedCtx.drawImage(spriteSheet, frameX * 32, frameY * 32, 32, 32, 0, 0, 32, 32);
-      });
-    }
-  };
-
-  spriteSelected.addEventListener("click", () => {
-    spriteOptions.style.display = spriteOptions.style.display === "block" ? "none" : "block";
-  });
-
-  let player;
-
-  startBtn.addEventListener("click", () => {
-    handleGameOver(); // ✅ clear tree before new run
-    const slot = parseInt(spriteSelected.dataset.slot || 0);
-    player = new Player("warrior", slot);
-    characterSelect.style.display = "none";
-    window.player = player;
-  });
-
-  characterSelect.style.display = "block";
-</script>
-
 
   <script type="module" src="js/game.js"></script>
 
@@ -405,7 +337,6 @@
     const hud = document.getElementById("hud");
     const mobileControls = document.getElementById('mobile-controls');
     const mobileActions = document.getElementById('mobile-actions');
-    const keys = window.keys || {};
 
     // Background music control
     const bgMusic = document.getElementById("bgMusic");
@@ -434,26 +365,6 @@
       mobileControls.style.display = 'none';
       mobileActions.style.display = 'none';
     }
-
-    function setKey(id, state) {
-      if (id === "up" || id === "down" || id === "left" || id === "right") {
-        keys[id] = state;
-      }
-      if (id === "attack") keys[" "] = state;
-      if (id === "special") keys["k"] = state;
-    }
-
-    document.querySelectorAll("#mobile-controls button.control, #mobile-actions button.control")
-      .forEach(btn => {
-        btn.addEventListener("touchstart", e => {
-          e.preventDefault();
-          setKey(btn.dataset.dir || btn.dataset.action, true);
-        });
-        btn.addEventListener("touchend", e => {
-          e.preventDefault();
-          setKey(btn.dataset.dir || btn.dataset.action, false);
-        });
-      });
 
     function resizeCanvas() {
       const aspect = 1024 / 768;

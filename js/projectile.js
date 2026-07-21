@@ -1,4 +1,5 @@
-import { applyChainLightning } from "./skills.js"; // ✅ add this at the top
+import { applyChainLightning } from "./skills.js";
+import { drawEffect } from "./effects.js"; // ✅ add this at the top
 
 export class Projectile {
   constructor(
@@ -39,6 +40,12 @@ export class Projectile {
     this.onExpire = null;
     this.onHit = null;
 
+    // Gradual homing (set by Player.spawnProjectile for player shots; left at
+    // 0 for anything that shouldn't curve, like most enemy projectiles)
+    this.homingTurnRate = 0;
+    this.presetTarget = null;
+    this.homingTarget = null;
+
     // Type-specific properties
     switch (type) {
       case "bouncing":
@@ -57,6 +64,16 @@ export class Projectile {
     }
   }
 
+  acquireNearest(enemies) {
+    let closest = null, minDist = Infinity;
+    for (const e of enemies) {
+      if (e === this.owner) continue;
+      const dist = Math.hypot(e.px + 16 - this.x, e.py + 16 - this.y);
+      if (dist < minDist) { minDist = dist; closest = e; }
+    }
+    return closest;
+  }
+
   // Update velocity if owner's projectileSpeed changes mid-flight
   updateVelocity() {
     if (!this.owner) return;
@@ -68,14 +85,30 @@ export class Projectile {
   }
 
   update(enemies = [], canvas = { width: 800, height: 600 }, projectiles = []) {
-    // Homing logic
-    if (this.type === "homing" && enemies.length > 0) {
-      let closest = null, minDist = Infinity;
-      for (const e of enemies) {
-        if (e === this.owner) continue;
-        const dist = Math.hypot(e.px + 16 - this.x, e.py + 16 - this.y);
-        if (dist < minDist) { minDist = dist; closest = e; }
+    // Gradual homing (player shots): curve toward a locked target at a
+    // limited turn rate per frame, rather than snapping straight at it.
+    if (this.homingTurnRate > 0 && enemies.length > 0) {
+      if (!this.homingTarget || this.homingTarget.hp <= 0 || !enemies.includes(this.homingTarget)) {
+        this.homingTarget = (this.presetTarget && enemies.includes(this.presetTarget) && this.presetTarget.hp > 0)
+          ? this.presetTarget
+          : this.acquireNearest(enemies);
       }
+      if (this.homingTarget) {
+        const tx = this.homingTarget.px + 16, ty = this.homingTarget.py + 16;
+        const desired = Math.atan2(ty - this.y, tx - this.x);
+        const current = Math.atan2(this.vy, this.vx);
+        let diff = desired - current;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff)); // normalize to [-PI, PI]
+        const turn = Math.max(-this.homingTurnRate, Math.min(this.homingTurnRate, diff));
+        const newAngle = current + turn;
+        const speed = Math.hypot(this.vx, this.vy);
+        this.vx = Math.cos(newAngle) * speed;
+        this.vy = Math.sin(newAngle) * speed;
+      }
+    } else if (this.type === "homing" && enemies.length > 0) {
+      // Legacy instant-snap homing, still used by enemy homing shots
+      // (wizard/voidcaster) that don't set a turn rate.
+      const closest = this.acquireNearest(enemies);
       if (closest) {
         const angle = Math.atan2(closest.py + 16 - this.y, closest.px + 16 - this.x);
         const speed = Math.hypot(this.vx, this.vy);
@@ -103,9 +136,9 @@ export class Projectile {
       if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) { this.vy *= -1; this.bounces--; }
     }
 
-    // Explosions on expiration
+    // Expiry hook (explosive shot / cluster projectile shards, etc)
     if (this.life <= 0) {
-      if (this.owner?.customProjectile && this.onExpire) {
+      if (this.onExpire) {
         this.onExpire(projectiles);
         this.onExpire = null;
       }
@@ -127,15 +160,33 @@ export class Projectile {
   }
 
   draw(ctx) {
-    if (this.owner?.type === "boss" || this.owner?.isMiniBoss) ctx.fillStyle = "#ff6600";
-    else if (this.color) ctx.fillStyle = this.color;
-    else {
-      const colors = { normal:"#fff", spread:"#ff0", bouncing:"#0ff", homing:"#f0f", heavy:"#f33", rain:"#00f", lightning:"#9cf" };
-      ctx.fillStyle = colors[this.type] || "#fff";
+    const spriteByType = {
+      normal: "boltNormal", spread: "boltSpread", homing: "boltHoming",
+      heavy: "boltHeavy", bouncing: "boltBouncing", rain: "boltRain",
+      lightning: "boltLightning", dashshot: "boltDashshot", "boss-burst": "boltBossBurst"
+    };
+    const spriteKey = spriteByType[this.type];
+
+    let tint = null;
+    if (this.owner?.type === "boss" || this.owner?.isMiniBoss) tint = "#ff6600";
+    else if (this.color) tint = this.color;
+
+    const size = this.radius * 2.75;
+    const angle = Math.atan2(this.vy, this.vx);
+    const drew = spriteKey && drawEffect(ctx, spriteKey, this.x, this.y, size, angle, tint);
+
+    if (!drew) {
+      // Fallback: original vector circle (sheet not loaded, or an unmapped type)
+      if (this.owner?.type === "boss" || this.owner?.isMiniBoss) ctx.fillStyle = "#ff6600";
+      else if (this.color) ctx.fillStyle = this.color;
+      else {
+        const colors = { normal:"#fff", spread:"#ff0", bouncing:"#0ff", homing:"#f0f", heavy:"#f33", rain:"#00f", lightning:"#9cf" };
+        ctx.fillStyle = colors[this.type] || "#fff";
+      }
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
     }
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fill();
   }
 
   isAlive() {
@@ -155,6 +206,7 @@ export class Projectile {
 
     if (typeof target.takeDamage === "function") {
       target.takeDamage(this.damage);
+      this.target = target;
 
       // Life Leech
       if (this.owner?.healFromDamage) this.owner.healFromDamage(this.damage);
@@ -170,7 +222,7 @@ export class Projectile {
       }
 
       // Exploding Shot on hit
-      if (this.owner?.explodingShot && this.onExpire) {
+      if (this.owner?.explosiveShot && this.onExpire) {
         this.onExpire(projectiles);
         this.onExpire = null;
       }
@@ -178,7 +230,7 @@ export class Projectile {
       // Custom onHit hook
       if (this.onHit) this.onHit(target, projectiles);
 
-      // ✅ Chain Lightning hook
+      // Chain Lightning hook
       applyChainLightning(this, enemies, projectiles);
     }
   }
