@@ -18,6 +18,15 @@ let enemies = [
 ];
 let animationFrameId = null;
 
+// All dynamically-created modals (skill tree, shop, meta upgrades) must be
+// appended inside #gameWrapper rather than document.body directly. When the
+// game is fullscreened, only the fullscreened element and its descendants
+// are actually rendered - anything appended straight to body becomes
+// invisible and unreachable until the player exits fullscreen.
+function getOverlayRoot() {
+  return document.getElementById("gameWrapper") || document.body;
+}
+
 const hpBarFill = document.getElementById("hpBarFill");
 const hpLabel = document.getElementById("hpLabel");
 const xpBarFill = document.getElementById("xpBarFill");
@@ -148,7 +157,7 @@ function ensureSkillTreeUI() {
   panel.appendChild(scrollArea);
   panel.appendChild(footer);
   overlay.appendChild(panel);
-  document.body.appendChild(overlay);
+  getOverlayRoot().appendChild(overlay);
 }
 
 function styleUIButton(btn) {
@@ -508,7 +517,7 @@ function ensureMetaUI() {
   panel.appendChild(list);
   panel.appendChild(footer);
   overlay.appendChild(panel);
-  document.body.appendChild(overlay);
+  getOverlayRoot().appendChild(overlay);
 }
 
 function renderMetaUI() {
@@ -890,7 +899,7 @@ function ensureShopUI() {
   panel.appendChild(list);
   panel.appendChild(footer);
   overlay.appendChild(panel);
-  document.body.appendChild(overlay);
+  getOverlayRoot().appendChild(overlay);
 }
 
 function renderShopUI() {
