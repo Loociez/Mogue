@@ -18,8 +18,10 @@ let enemies = [
 ];
 let animationFrameId = null;
 
-const hpLabel = document.getElementById("hp");
-const xpLabel = document.getElementById("xp");
+const hpBarFill = document.getElementById("hpBarFill");
+const hpLabel = document.getElementById("hpLabel");
+const xpBarFill = document.getElementById("xpBarFill");
+const xpLabel = document.getElementById("xpLabel");
 const goldLabel = document.getElementById("gold");
 const statsLabel = document.getElementById("stats");
 
@@ -90,30 +92,30 @@ function ensureSkillTreeUI() {
   Object.assign(overlay.style, {
     position: "fixed", inset: "0", display: "none",
     background: "rgba(0,0,0,0.75)", zIndex: 1000,
-    font: "13px sans-serif",
+    font: "13px 'Inter', sans-serif",
     alignItems: "center", justifyContent: "center"
   });
 
   const panel = document.createElement("div");
   panel.id = "skillTreePanel";
+  panel.className = "panel";
   Object.assign(panel.style, {
     width: "min(94vw, 620px)",
     maxHeight: "92vh",
     display: "flex", flexDirection: "column",
-    background: "#14161a", border: "2px solid #6cf", borderRadius: "10px",
-    padding: "10px", boxSizing: "border-box"
+    padding: "12px", boxSizing: "border-box"
   });
 
   const header = document.createElement("div");
   Object.assign(header.style, { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", flex: "0 0 auto" });
 
   const title = document.createElement("h2");
-  title.textContent = "Skill Tree";
-  Object.assign(title.style, { color: "#fff", margin: "0", fontSize: "16px" });
+  title.textContent = "🌳 Skill Tree";
+  Object.assign(title.style, { color: "var(--border-gold-bright)", margin: "0", fontSize: "17px", textShadow: "0 2px 6px rgba(0,0,0,0.5)" });
 
   const pointsLabel = document.createElement("div");
   pointsLabel.id = "skillPointsLabel";
-  Object.assign(pointsLabel.style, { color: "#d6f266", fontSize: "13px" });
+  Object.assign(pointsLabel.style, { color: "var(--accent-green)", fontSize: "13px", fontWeight: "700", fontFamily: "var(--font-display)" });
   pointsLabel.textContent = "Points: 0";
 
   header.appendChild(title);
@@ -121,7 +123,7 @@ function ensureSkillTreeUI() {
 
   const hint = document.createElement("div");
   hint.textContent = "Tap a node to upgrade it \u2022 hover/long-press for details";
-  Object.assign(hint.style, { color: "#7a8494", fontSize: "10px", marginBottom: "6px", flex: "0 0 auto" });
+  Object.assign(hint.style, { color: "var(--text-dim)", fontSize: "10px", marginBottom: "6px", flex: "0 0 auto" });
 
   const scrollArea = document.createElement("div");
   scrollArea.id = "skillGridScroll";
@@ -137,8 +139,8 @@ function ensureSkillTreeUI() {
 
   const closeBtn = document.createElement("button");
   closeBtn.textContent = "Close (L)";
+  closeBtn.className = "btn";
   closeBtn.onclick = closeSkillTree;
-  styleUIButton(closeBtn);
 
   footer.appendChild(closeBtn);
   panel.appendChild(header);
@@ -150,10 +152,7 @@ function ensureSkillTreeUI() {
 }
 
 function styleUIButton(btn) {
-  Object.assign(btn.style, {
-    padding: "6px 10px", borderRadius: "6px", border: "1px solid #6cf",
-    background: "#0e1116", color: "#fff", cursor: "pointer", fontSize: "12px"
-  });
+  btn.className = "btn";
 }
 
 function findSkillNode(id) {
@@ -253,10 +252,12 @@ function renderSkillTree() {
         position: "absolute",
         left: `${cx - NODE_W / 2}px`, top: `${cy - NODE_H / 2}px`,
         width: `${NODE_W}px`, height: `${NODE_H}px`,
-        border: "1px solid #2d3947", borderRadius: "6px",
-        background: "#0e1116", textAlign: "center", cursor: "pointer",
+        border: "1px solid var(--border-dim)", borderRadius: "6px",
+        background: "linear-gradient(160deg, var(--bg-panel-3), #0c0e16)",
+        textAlign: "center", cursor: "pointer",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        padding: "2px", boxSizing: "border-box", userSelect: "none"
+        padding: "2px", boxSizing: "border-box", userSelect: "none",
+        transition: "box-shadow 0.15s ease"
       });
 
       let canUpgrade = node.level < node.maxLevel && player.skillPoints > 0;
@@ -265,23 +266,23 @@ function renderSkillTree() {
         if (!req || req.level === 0) canUpgrade = false;
       }
       const isMaxed = node.level >= node.maxLevel;
-      if (isMaxed) { card.style.borderColor = "#5fbf5f"; card.style.background = "#0e1a0e"; }
+      if (isMaxed) { card.style.borderColor = "var(--accent-green)"; card.style.boxShadow = "0 0 6px rgba(126,224,138,0.35)"; }
       else if (!canUpgrade) card.style.opacity = "0.4";
-      else card.style.borderColor = "#6cf";
+      else { card.style.borderColor = "var(--border-gold-bright)"; card.style.boxShadow = "0 0 6px rgba(232,199,102,0.3)"; }
 
       card.title = `${node.name || node.id}\n${node.desc || ""}\nLevel ${node.level}/${node.maxLevel}`;
 
       const nameEl = document.createElement("div");
       nameEl.textContent = (node.name || node.id).split(" ")[0];
       Object.assign(nameEl.style, {
-        fontWeight: "bold", fontSize: "9px", lineHeight: "1.05",
+        fontWeight: "bold", fontSize: "9px", lineHeight: "1.05", fontFamily: "var(--font-display)",
         color: node.maxLevel === 1 ? "#ff9be0" : node.maxLevel === 3 ? "#ff8a6b" : "#ffe066",
         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%"
       });
 
       const levelEl = document.createElement("div");
       levelEl.textContent = isMaxed ? "MAX" : `${node.level}/${node.maxLevel}`;
-      Object.assign(levelEl.style, { color: "#9fe066", fontSize: "9px", marginTop: "2px" });
+      Object.assign(levelEl.style, { color: "var(--accent-green)", fontSize: "9px", marginTop: "2px" });
 
       card.appendChild(nameEl);
       card.appendChild(levelEl);
@@ -319,7 +320,7 @@ function renderSkillTree() {
     line.setAttribute("y1", from.y + NODE_H / 2);
     line.setAttribute("x2", to.x);
     line.setAttribute("y2", to.y - NODE_H / 2);
-    line.setAttribute("stroke", unlocked ? "#6cf" : "#3a4552");
+    line.setAttribute("stroke", unlocked ? "#e8c766" : "#3a4552");
     line.setAttribute("stroke-width", "2");
     svg.appendChild(line);
   });
@@ -355,11 +356,22 @@ function showCharacterSelect() {
   container.style.display = "block";
   container.innerHTML = "";
 
+  const title = document.createElement("h2");
+  title.textContent = "⚔️ Choose Your Hero";
+  Object.assign(title.style, { color: "var(--border-gold-bright)", fontSize: "22px", marginBottom: "14px", textShadow: "0 2px 8px rgba(0,0,0,0.6)" });
+  container.appendChild(title);
+
+  const previewRow = document.createElement("div");
+  Object.assign(previewRow.style, { display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", marginBottom: "14px" });
+
   const previewCanvas = document.createElement("canvas");
   previewCanvas.width = 64;
   previewCanvas.height = 64;
-  Object.assign(previewCanvas.style, { border: "2px solid #fff", marginBottom: "10px" });
-  container.appendChild(previewCanvas);
+  Object.assign(previewCanvas.style, {
+    border: "2px solid var(--border-gold)", borderRadius: "6px",
+    background: "var(--bg-panel-3)", imageRendering: "pixelated"
+  });
+  previewRow.appendChild(previewCanvas);
 
   const previewCtx = previewCanvas.getContext("2d");
   const previewImg = new Image();
@@ -375,10 +387,17 @@ function showCharacterSelect() {
   previewImg.src = "assets/player.png";
   previewImg.onload = () => drawPreview(spriteSlot);
 
-  const label = document.createElement("label");
-  label.textContent = "Select Sprite Slot: ";
+  const selectWrap = document.createElement("div");
+  Object.assign(selectWrap.style, { textAlign: "left" });
+  const label = document.createElement("div");
+  label.textContent = "Sprite";
+  Object.assign(label.style, { fontSize: "11px", color: "var(--text-dim)", marginBottom: "3px" });
   const select = document.createElement("select");
   select.id = "spriteSlotSelect";
+  Object.assign(select.style, {
+    background: "var(--bg-panel-3)", color: "var(--text-parchment)",
+    border: "1px solid var(--border-gold)", borderRadius: "6px", padding: "5px 8px", fontFamily: "var(--font-body)"
+  });
   for (let i = 0; i < 32; i++) {
     const opt = document.createElement("option");
     opt.value = i;
@@ -386,44 +405,49 @@ function showCharacterSelect() {
     select.appendChild(opt);
   }
   select.addEventListener("change", () => { spriteSlot = parseInt(select.value); drawPreview(spriteSlot); });
-  container.appendChild(label);
-  container.appendChild(select);
-  container.appendChild(document.createElement("br"));
+  selectWrap.appendChild(label);
+  selectWrap.appendChild(select);
+  previewRow.appendChild(selectWrap);
+  container.appendChild(previewRow);
 
+  const classRow = document.createElement("div");
+  Object.assign(classRow.style, { display: "flex", flexDirection: "column", gap: "8px" });
   [
-    { type: "warrior", name: "Warrior", desc: "High HP & damage" },
-    { type: "archer", name: "Archer", desc: "Fires spread projectiles" },
-    { type: "mage", name: "Mage", desc: "Fires homing projectiles" }
+    { type: "warrior", icon: "🛡️", name: "Warrior", desc: "High HP & damage" },
+    { type: "archer", icon: "🏹", name: "Archer", desc: "Fires spread projectiles" },
+    { type: "mage", icon: "🔮", name: "Mage", desc: "Fires homing projectiles" }
   ].forEach(choice => {
     const btn = document.createElement("button");
-    btn.textContent = `${choice.name} - ${choice.desc}`;
+    btn.className = "btn";
+    btn.style.padding = "10px";
+    btn.style.fontSize = "14px";
+    btn.innerHTML = `${choice.icon} ${choice.name} <span style="font-weight:400;font-family:var(--font-body);color:var(--text-dim);font-size:11px;">— ${choice.desc}</span>`;
     btn.onclick = () => beginRun(choice.type);
-    container.appendChild(btn);
+    classRow.appendChild(btn);
   });
-
-  container.appendChild(document.createElement("br"));
+  container.appendChild(classRow);
 
   const essenceLine = document.createElement("div");
   essenceLine.id = "charSelectEssence";
-  Object.assign(essenceLine.style, { color: "#c9a3ff", margin: "10px 0 4px 0", fontSize: "14px" });
+  Object.assign(essenceLine.style, { color: "var(--accent-purple)", margin: "14px 0 6px 0", fontSize: "14px", fontFamily: "var(--font-display)", fontWeight: "700" });
   essenceLine.textContent = `\u2726 Essence: ${getMeta().essence}`;
   container.appendChild(essenceLine);
 
   const metaBtn = document.createElement("button");
-  metaBtn.textContent = "Permanent Upgrades";
+  metaBtn.className = "btn";
+  metaBtn.style.width = "100%";
+  metaBtn.textContent = "✦ Permanent Upgrades";
   metaBtn.onclick = openMetaUI;
   container.appendChild(metaBtn);
 
   const controlsInfo = document.createElement("div");
-  Object.assign(controlsInfo.style, { marginTop: "20px", color: "#fff", font: "16px sans-serif" });
+  Object.assign(controlsInfo.style, { marginTop: "18px", color: "var(--text-dim)", fontSize: "12px", fontFamily: "var(--font-body)", borderTop: "1px solid var(--border-dim)", paddingTop: "10px" });
   controlsInfo.innerHTML = `
-    <h3>Controls</h3>
-    <p>WASD / Arrow Keys - Move</p>
-    <p>Space / Tap Attack - Fire</p>
-    <p>K - Open Shop</p>
-    <p>L - Skill Tree</p>
-    <p>Shift - Blink - Unlockable</p>
-    <p>Esc - Pause</p>
+    <div style="color:var(--text-parchment); font-family:var(--font-display); font-size:13px; margin-bottom:4px;">Controls</div>
+    <p style="margin:2px 0;">WASD / Arrow Keys — Move</p>
+    <p style="margin:2px 0;">Space / Tap Attack — Fire</p>
+    <p style="margin:2px 0;">K — Shop &nbsp;·&nbsp; L — Skill Tree &nbsp;·&nbsp; Shift — Blink</p>
+    <p style="margin:2px 0;">Esc — Pause</p>
   `;
   container.appendChild(controlsInfo);
 }
@@ -441,31 +465,31 @@ function ensureMetaUI() {
   Object.assign(overlay.style, {
     position: "fixed", inset: "0", display: "none",
     background: "rgba(0,0,0,0.75)", zIndex: 1000,
-    alignItems: "center", justifyContent: "center", font: "13px sans-serif"
+    alignItems: "center", justifyContent: "center", font: "13px 'Inter', sans-serif"
   });
 
   const panel = document.createElement("div");
   panel.id = "metaPanel";
+  panel.className = "panel";
   Object.assign(panel.style, {
     width: "min(94vw, 480px)", maxHeight: "88vh", overflowY: "auto",
-    background: "#14161a", border: "2px solid #c9a3ff", borderRadius: "10px",
-    padding: "14px", boxSizing: "border-box"
+    padding: "16px", boxSizing: "border-box"
   });
 
   const header = document.createElement("div");
   Object.assign(header.style, { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" });
   const title = document.createElement("h2");
-  title.textContent = "Permanent Upgrades";
-  Object.assign(title.style, { color: "#fff", margin: "0", fontSize: "16px" });
+  title.textContent = "✦ Permanent Upgrades";
+  Object.assign(title.style, { color: "var(--border-gold-bright)", margin: "0", fontSize: "17px", textShadow: "0 2px 6px rgba(0,0,0,0.5)" });
   const essenceLabel = document.createElement("div");
   essenceLabel.id = "metaEssenceLabel";
-  Object.assign(essenceLabel.style, { color: "#c9a3ff" });
+  Object.assign(essenceLabel.style, { color: "var(--accent-purple)", fontWeight: "700", fontFamily: "var(--font-display)" });
   header.appendChild(title);
   header.appendChild(essenceLabel);
 
   const hint = document.createElement("div");
   hint.textContent = "Bought with Essence, earned at the end of every run. These are small, permanent bonuses meant to help you push into harder zones over time.";
-  Object.assign(hint.style, { color: "#8a93a3", fontSize: "11px", marginBottom: "10px" });
+  Object.assign(hint.style, { color: "var(--text-dim)", fontSize: "11px", marginBottom: "10px" });
 
   const list = document.createElement("div");
   list.id = "metaList";
@@ -475,8 +499,8 @@ function ensureMetaUI() {
   Object.assign(footer.style, { display: "flex", justifyContent: "flex-end", marginTop: "12px" });
   const closeBtn = document.createElement("button");
   closeBtn.textContent = "Close";
+  closeBtn.className = "btn";
   closeBtn.onclick = closeMetaUI;
-  styleUIButton(closeBtn);
   footer.appendChild(closeBtn);
 
   panel.appendChild(header);
@@ -505,24 +529,24 @@ function renderMetaUI() {
     const row = document.createElement("div");
     Object.assign(row.style, {
       display: "flex", justifyContent: "space-between", alignItems: "center",
-      border: "1px solid #2d3947", borderRadius: "8px", padding: "8px 10px"
+      border: "1px solid var(--border-dim)", borderRadius: "8px", padding: "8px 10px",
+      background: "var(--bg-panel-3)"
     });
 
     const info = document.createElement("div");
     const nameEl = document.createElement("div");
     nameEl.textContent = `${def.name} (${level}/${def.max})`;
-    Object.assign(nameEl.style, { color: "#ffe066", fontWeight: "bold", fontSize: "13px" });
+    Object.assign(nameEl.style, { color: "#ffe066", fontWeight: "bold", fontSize: "13px", fontFamily: "var(--font-display)" });
     const descEl = document.createElement("div");
     descEl.textContent = def.desc;
-    Object.assign(descEl.style, { color: "#b8c0cc", fontSize: "11px" });
+    Object.assign(descEl.style, { color: "var(--text-dim)", fontSize: "11px" });
     info.appendChild(nameEl);
     info.appendChild(descEl);
 
     const btn = document.createElement("button");
-    btn.textContent = maxed ? "MAX" : `Buy (${cost})`;
-    styleUIButton(btn);
+    btn.textContent = maxed ? "MAX" : `Buy (\u2726${cost})`;
+    btn.className = "btn";
     btn.disabled = maxed || meta.essence < cost;
-    if (btn.disabled) btn.style.opacity = "0.5";
     btn.onclick = () => {
       if (purchaseUpgrade(key)) renderMetaUI();
     };
@@ -577,7 +601,7 @@ async function beginRun(characterType) {
   document.getElementById("characterSelect").style.display = "none";
   paused = false;
   uiOpen = false;
-  shopOpen = false;
+  closeShop();
   closeSkillTree();
 
   enemies = [];
@@ -599,6 +623,8 @@ async function beginRun(characterType) {
   if (deathOverlay) deathOverlay.style.display = "none";
 
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  lastFrameTime = 0;
+  simAccumulator = 0;
   animationFrameId = requestAnimationFrame(mainLoop);
 }
 
@@ -787,30 +813,152 @@ window.setLevel = (level = 40) => {
 // ============================================================
 let shopOpen = false;
 const shopItems = [
-  { name: "1) XP Boost", cost: 70, xpAmount: 10, stackable: true,
+  { icon: "✨", name: "XP Boost", desc: "Instantly gain a chunk of XP", cost: 70, xpAmount: 10, stackable: true,
     action() { player.gainXp(this.xpAmount, onLevelUp); this.xpAmount = Math.floor(this.xpAmount * 1.2); this.cost = Math.floor(this.cost * 2); } },
-  { name: "2) Spread Projectile", cost: 100, action() { player.unlockProjectile("spread"); } },
-  { name: "3) Homing Projectile", cost: 150, action() { player.unlockProjectile("homing"); } },
-  { name: "4) Heavy Projectile", cost: 150, action() { player.unlockProjectile("heavy"); } },
-  { name: "5) Speed Boost", cost: 12000, stackable: true,
+  { icon: "🏹", name: "Spread Projectile", desc: "Switch to a 3-way spread shot", cost: 100, action() { player.unlockProjectile("spread"); } },
+  { icon: "🔮", name: "Homing Projectile", desc: "Switch to a homing bolt", cost: 150, action() { player.unlockProjectile("homing"); } },
+  { icon: "💥", name: "Heavy Projectile", desc: "Switch to a slow, hard-hitting shot", cost: 150, action() { player.unlockProjectile("heavy"); } },
+  { icon: "🥾", name: "Speed Boost", desc: "+0.65 move speed", cost: 12000, stackable: true,
     action() { player.speed += 0.65; this.cost = Math.floor(this.cost * 1.5); } },
-  { name: "6) Exploding Projectiles", cost: 250, action() { player.projectileExplosion = true; } },
-  { name: "7) Life Leech", cost: 30000, action() { player.lifeLeech = Math.max(player.lifeLeech, 0.2); } },
-  { name: "8) Critical Boost", cost: 18000,
+  { icon: "🎆", name: "Exploding Projectiles", desc: "Shots splash nearby enemies on hit", cost: 250, action() { player.projectileExplosion = true; } },
+  { icon: "🩸", name: "Life Leech", desc: "Heal on damage dealt", cost: 30000, action() { player.lifeLeech = Math.max(player.lifeLeech, 0.2); } },
+  { icon: "🎯", name: "Critical Boost", desc: "+10% crit chance, +0.5x crit damage", cost: 18000,
     action() { player.critChance = Math.min((player.critChance || 0) + 0.1, 1); player.critMultiplier = (player.critMultiplier || 1.5) + 0.5; } },
-  { name: "9) Max Range Increase", cost: 150, action() { player.maxDistance += 100; } }
+  { icon: "📏", name: "Max Range Increase", desc: "+100 projectile range", cost: 150, action() { player.maxDistance += 100; } }
 ];
+
+function buyShopItem(idx) {
+  const item = shopItems[idx];
+  if (!item || (!item.stackable && item.bought)) return;
+  if (!player || player.gold < item.cost) return;
+  player.gold -= item.cost;
+  item.action();
+  if (!item.stackable) item.bought = true;
+  updateHUD();
+  renderShopUI();
+  if (!item.stackable) closeShop();
+}
+
+function ensureShopUI() {
+  let overlay = document.getElementById("shopModalUI");
+  if (overlay) return;
+
+  overlay = document.createElement("div");
+  overlay.id = "shopModalUI";
+  Object.assign(overlay.style, {
+    position: "fixed", inset: "0", display: "none",
+    background: "rgba(0,0,0,0.75)", zIndex: 1000,
+    alignItems: "center", justifyContent: "center", font: "13px sans-serif"
+  });
+
+  const panel = document.createElement("div");
+  panel.className = "panel";
+  Object.assign(panel.style, {
+    width: "min(94vw, 560px)", maxHeight: "88vh", overflowY: "auto",
+    padding: "16px", boxSizing: "border-box"
+  });
+
+  const header = document.createElement("div");
+  Object.assign(header.style, { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" });
+  const title = document.createElement("h2");
+  title.textContent = "🛒 Shop";
+  Object.assign(title.style, { color: "var(--border-gold-bright)", fontSize: "18px" });
+  const goldLabelEl = document.createElement("div");
+  goldLabelEl.id = "shopGoldLabel";
+  Object.assign(goldLabelEl.style, { color: "#f0c95c", fontWeight: "700", fontFamily: "var(--font-display)" });
+  header.appendChild(title);
+  header.appendChild(goldLabelEl);
+
+  const hint = document.createElement("div");
+  hint.textContent = "Click an item to buy, or press its number (1-9).";
+  Object.assign(hint.style, { color: "var(--text-dim)", fontSize: "11px", marginBottom: "10px" });
+
+  const list = document.createElement("div");
+  list.id = "shopList";
+  Object.assign(list.style, { display: "flex", flexDirection: "column", gap: "8px" });
+
+  const footer = document.createElement("div");
+  Object.assign(footer.style, { display: "flex", justifyContent: "flex-end", marginTop: "12px" });
+  const closeBtn = document.createElement("button");
+  closeBtn.textContent = "Close (K)";
+  closeBtn.className = "btn";
+  closeBtn.onclick = closeShop;
+  footer.appendChild(closeBtn);
+
+  panel.appendChild(header);
+  panel.appendChild(hint);
+  panel.appendChild(list);
+  panel.appendChild(footer);
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+}
+
+function renderShopUI() {
+  const list = document.getElementById("shopList");
+  const goldLabelEl = document.getElementById("shopGoldLabel");
+  if (!list || !goldLabelEl || !player) return;
+
+  goldLabelEl.textContent = `🪙 ${player.gold}`;
+  list.innerHTML = "";
+
+  shopItems.forEach((item, i) => {
+    const maxed = !item.stackable && item.bought;
+    const affordable = player.gold >= item.cost;
+
+    const row = document.createElement("div");
+    Object.assign(row.style, {
+      display: "flex", alignItems: "center", gap: "10px",
+      border: "1px solid var(--border-dim)", borderRadius: "8px", padding: "8px 10px",
+      background: "var(--bg-panel-3)", cursor: maxed || !affordable ? "default" : "pointer",
+      opacity: maxed ? "0.45" : affordable ? "1" : "0.65"
+    });
+
+    const iconEl = document.createElement("div");
+    iconEl.textContent = item.icon;
+    Object.assign(iconEl.style, { fontSize: "22px", width: "30px", textAlign: "center" });
+
+    const info = document.createElement("div");
+    Object.assign(info.style, { flex: "1" });
+    const nameEl = document.createElement("div");
+    nameEl.textContent = `${i + 1}. ${item.name}`;
+    Object.assign(nameEl.style, { color: "#ffe066", fontWeight: "bold", fontSize: "13px" });
+    const descEl = document.createElement("div");
+    descEl.textContent = item.desc || "";
+    Object.assign(descEl.style, { color: "var(--text-dim)", fontSize: "11px" });
+    info.appendChild(nameEl);
+    info.appendChild(descEl);
+
+    const costEl = document.createElement("div");
+    costEl.className = "btn";
+    costEl.style.pointerEvents = "none";
+    costEl.style.fontSize = "12px";
+    costEl.textContent = maxed ? "MAX" : `🪙 ${item.cost}`;
+
+    row.appendChild(iconEl);
+    row.appendChild(info);
+    row.appendChild(costEl);
+
+    if (!maxed && affordable) row.onclick = () => buyShopItem(i);
+
+    list.appendChild(row);
+  });
+}
 
 function openShop() {
   if (!player || isDead) return;
   if (shopOpen) { closeShop(); return; }
   closeSkillTree(); // enforce only one modal (shop/skills) open at a time
+  ensureShopUI();
+  renderShopUI();
+  document.getElementById("shopModalUI").style.display = "flex";
   shopOpen = true;
   paused = true;
   uiOpen = true;
 }
 
 function closeShop() {
+  const overlay = document.getElementById("shopModalUI");
+  if (overlay) overlay.style.display = "none";
   shopOpen = false;
   paused = false;
   uiOpen = false;
@@ -819,17 +967,7 @@ function closeShop() {
 window.addEventListener("keydown", e => {
   if (!shopOpen || !player) return;
   const idx = parseInt(e.key) - 1;
-  if (idx >= 0 && idx < shopItems.length) {
-    const item = shopItems[idx];
-    if (!item.stackable && item.bought) return;
-    if (player.gold >= item.cost) {
-      player.gold -= item.cost;
-      item.action();
-      if (!item.stackable) item.bought = true;
-      updateHUD();
-      if (!item.stackable) closeShop();
-    }
-  }
+  if (idx >= 0 && idx < shopItems.length) buyShopItem(idx);
 });
 
 window.addEventListener("keydown", e => {
@@ -848,25 +986,57 @@ function onLevelUp() {
 // ============================================================
 // Main loop
 // ============================================================
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
 function rectCircleCollide(cx, cy, radius, rx, ry, rw, rh) {
   const dx = cx - Math.max(rx, Math.min(cx, rx + rw));
   const dy = cy - Math.max(ry, Math.min(cy, ry + rh));
   return dx * dx + dy * dy <= radius * radius;
 }
 
-function mainLoop() {
+const SIM_HZ = 60;
+const SIM_DT = 1000 / SIM_HZ; // ms per simulation tick
+const MAX_FRAME_TIME = SIM_DT * 5; // clamp huge gaps (tab backgrounded, debugger pause, etc.)
+
+let lastFrameTime = 0;
+let simAccumulator = 0;
+
+function mainLoop(timestamp) {
   if (isDead) return;
 
-  if (!paused) {
-    updateWorld();
-  }
-  render();
+  if (!lastFrameTime) lastFrameTime = timestamp;
+  let frameTime = timestamp - lastFrameTime;
+  lastFrameTime = timestamp;
+  if (frameTime > MAX_FRAME_TIME) frameTime = MAX_FRAME_TIME;
 
+  simAccumulator += frameTime;
+
+  // Run the simulation at a fixed cadence (60 ticks/sec) no matter how often
+  // the browser actually calls requestAnimationFrame. This is what keeps
+  // movement speed, cooldowns, spawn rate, and animations identical across
+  // 60Hz, 120Hz, 144Hz+ displays instead of scaling with refresh rate.
+  let ticks = 0;
+  while (simAccumulator >= SIM_DT && ticks < 5) {
+    if (!paused) updateWorld();
+    simAccumulator -= SIM_DT;
+    ticks++;
+  }
+
+  render();
   animationFrameId = requestAnimationFrame(mainLoop);
 }
 
 function updateWorld() {
   frameCount++;
+  tickEffects();
   if (player?.blinkCooldownTimer > 0) player.blinkCooldownTimer--;
 
   if (frameCount % 300 === 0) {
@@ -899,18 +1069,41 @@ function updateWorld() {
   checkPlayerDeath();
 }
 
+// Finds a walkable tile near a given map edge, searching inward if the exact
+// edge is blocked (e.g. maps with a perimeter wall). Without this, spawn
+// selection that only ever tries the literal edge coordinate (0, width-1,
+// etc) silently fails forever on any map with a border wall - nothing ever
+// spawns, since every attempt lands on a blocked tile.
+function findEdgeSpawnTile(side) {
+  const maxCols = Math.floor(canvasWidth / TILE_SIZE);
+  const maxRows = Math.floor(canvasHeight / TILE_SIZE);
+  const maxSearch = 8;
+
+  if (side === 0) { // left edge, searching rightward
+    const ty = Math.floor(Math.random() * maxRows);
+    for (let tx = 0; tx < maxSearch && tx < maxCols; tx++) if (map.isWalkable(tx, ty)) return [tx, ty];
+  } else if (side === 1) { // right edge, searching leftward
+    const ty = Math.floor(Math.random() * maxRows);
+    for (let tx = maxCols - 1; tx >= 0 && tx > maxCols - 1 - maxSearch; tx--) if (map.isWalkable(tx, ty)) return [tx, ty];
+  } else if (side === 2) { // top edge, searching downward
+    const tx = Math.floor(Math.random() * maxCols);
+    for (let ty = 0; ty < maxSearch && ty < maxRows; ty++) if (map.isWalkable(tx, ty)) return [tx, ty];
+  } else { // bottom edge, searching upward
+    const tx = Math.floor(Math.random() * maxCols);
+    for (let ty = maxRows - 1; ty >= 0 && ty > maxRows - 1 - maxSearch; ty--) if (map.isWalkable(tx, ty)) return [tx, ty];
+  }
+  return null;
+}
+
 function spawnWave() {
   if (!player) return;
   if (currentMapTier >= 2) { spawnWaveTier2(); return; }
   for (let i = 0; i < 8; i++) {
     const side = Math.floor(4 * Math.random());
-    let tx, ty;
-    if (side === 0) { tx = 0; ty = Math.floor(Math.random() * (canvasHeight / TILE_SIZE)); }
-    else if (side === 1) { tx = Math.floor(canvasWidth / TILE_SIZE) - 1; ty = Math.floor(Math.random() * (canvasHeight / TILE_SIZE)); }
-    else if (side === 2) { ty = 0; tx = Math.floor(Math.random() * (canvasWidth / TILE_SIZE)); }
-    else { ty = Math.floor(canvasHeight / TILE_SIZE) - 1; tx = Math.floor(Math.random() * (canvasWidth / TILE_SIZE)); }
+    const pos = findEdgeSpawnTile(side);
+    if (!pos) continue;
+    const [tx, ty] = pos;
 
-    if (!map.isWalkable(tx, ty)) continue;
     if (Math.abs(tx - player.x) + Math.abs(ty - player.y) < 5) continue;
 
     if (player.level >= 40 && Math.random() < 0.02 && !enemies.some(en => en.type === "lateBoss")) {
@@ -989,13 +1182,10 @@ function spawnWaveTier2() {
 
   for (let i = 0; i < spawnCount; i++) {
     const side = Math.floor(4 * Math.random());
-    let tx, ty;
-    if (side === 0) { tx = 0; ty = Math.floor(Math.random() * (canvasHeight / TILE_SIZE)); }
-    else if (side === 1) { tx = Math.floor(canvasWidth / TILE_SIZE) - 1; ty = Math.floor(Math.random() * (canvasHeight / TILE_SIZE)); }
-    else if (side === 2) { ty = 0; tx = Math.floor(Math.random() * (canvasWidth / TILE_SIZE)); }
-    else { ty = Math.floor(canvasHeight / TILE_SIZE) - 1; tx = Math.floor(Math.random() * (canvasWidth / TILE_SIZE)); }
+    const pos = findEdgeSpawnTile(side);
+    if (!pos) continue;
+    const [tx, ty] = pos;
 
-    if (!map.isWalkable(tx, ty)) continue;
     if (Math.abs(tx - player.x) + Math.abs(ty - player.y) < 5) continue;
 
     // Rare, brutal boss - noticeably stronger than anything in the first zone
@@ -1282,7 +1472,7 @@ function checkPlayerDeath() {
     const earned = awardRunEssence({ level: player.level, mapTier: currentMapTier, gold: player.gold });
     if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
     const overlay = document.getElementById("deathOverlay");
-    if (overlay) overlay.style.display = "block";
+    if (overlay) overlay.style.display = "flex";
     const essenceLabel = document.getElementById("essenceEarned");
     if (essenceLabel) essenceLabel.textContent = `+${earned} Essence earned (Total: ${getMeta().essence})`;
   }
@@ -1292,7 +1482,6 @@ function checkPlayerDeath() {
 // Render
 // ============================================================
 function render() {
-  tickEffects();
   ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
   let shakeX = 0, shakeY = 0;
@@ -1372,7 +1561,7 @@ function render() {
   for (const e of explosions) {
     const t = e.life / e.maxLife;
     const size = e.radius * (1 - 0.5 * t) * 2.2;
-    const drew = drawEffect(ctx, e.sprite || "explosionBurst", e.x, e.y, size, 0, null, 0.75, Math.min(1, t * 1.4));
+    const drew = drawEffect(ctx, e.sprite || "explosionBurst", e.x, e.y, size, 0, e.tint || null, 0.75, Math.min(1, t * 1.4));
     if (!drew) {
       ctx.beginPath();
       ctx.arc(e.x, e.y, e.radius * (1 - 0.5 * t), 0, Math.PI * 2);
@@ -1414,42 +1603,52 @@ function render() {
   }
 
   if (paused && !uiOpen && player) {
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillStyle = "rgba(5,6,10,0.72)";
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    ctx.fillStyle = "#fff";
-    ctx.font = "28px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("Game Paused", canvasWidth / 2, canvasHeight / 2 - 40);
-    ctx.font = "18px sans-serif";
-    ctx.fillText(`Current Run: Lv ${player.level}, Gold ${player.gold}, Time ${(frameCount / 60).toFixed(1)}s`, canvasWidth / 2, canvasHeight / 2);
-    if (lastRun) ctx.fillText(`Last Run: Lv ${lastRun.level}, Gold ${lastRun.gold}, Time ${lastRun.time}s`, canvasWidth / 2, canvasHeight / 2 + 30);
-    ctx.font = "16px sans-serif";
-    ctx.fillText("WASD / Arrows = Move", canvasWidth / 2, canvasHeight / 2 + 80);
-    ctx.fillText("Space = Attack", canvasWidth / 2, canvasHeight / 2 + 100);
-    ctx.fillText("K = Shop", canvasWidth / 2, canvasHeight / 2 + 120);
-    ctx.fillText("L = Skill Tree, Shift = Blink", canvasWidth / 2, canvasHeight / 2 + 140);
-    ctx.fillText("Esc = Pause", canvasWidth / 2, canvasHeight / 2 + 160);
-  }
 
-  if (shopOpen && player) {
-    ctx.fillStyle = "rgba(192,173,229,0.6)";
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-    ctx.fillStyle = "#fff";
-    ctx.font = "28px sans-serif";
+    const boxW = 460, boxH = 260;
+    const boxX = canvasWidth / 2 - boxW / 2, boxY = canvasHeight / 2 - boxH / 2;
+    ctx.save();
+    ctx.fillStyle = "rgba(18,20,31,0.92)";
+    ctx.strokeStyle = "#a9812f";
+    ctx.lineWidth = 2;
+    roundRect(ctx, boxX, boxY, boxW, boxH, 12);
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(169,129,47,0.35)";
+    ctx.lineWidth = 1;
+    roundRect(ctx, boxX + 4, boxY + 4, boxW - 8, boxH - 8, 9);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.fillStyle = "#e8c766";
+    ctx.font = "bold 26px Cinzel, serif";
     ctx.textAlign = "center";
-    ctx.fillText("Shop", canvasWidth / 2, 80);
-    ctx.font = "20px sans-serif";
-    shopItems.forEach((item, i) => {
-      const y = 140 + 40 * i;
-      let text = `${item.name} - ${item.cost} Gold`;
-      let color = player.gold >= item.cost ? "#d6f266" : "#888";
-      if (!item.stackable && item.bought) { color = "#555"; text = `${item.name} - MAX`; }
-      ctx.fillStyle = color;
-      ctx.fillText(text, canvasWidth / 2, y);
-    });
-    ctx.font = "16px sans-serif";
-    ctx.fillStyle = "#fff";
-    ctx.fillText("Press 1-9 to buy an item, K or the Shop button to close", canvasWidth / 2, canvasHeight - 40);
+    ctx.fillText("Paused", canvasWidth / 2, boxY + 44);
+
+    ctx.fillStyle = "#ece4cf";
+    ctx.font = "15px Inter, sans-serif";
+    ctx.fillText(`Current Run — Lv ${player.level} · ${player.gold} Gold · ${(frameCount / 60).toFixed(0)}s`, canvasWidth / 2, boxY + 78);
+    if (lastRun) {
+      ctx.fillStyle = "#8890a6";
+      ctx.font = "13px Inter, sans-serif";
+      ctx.fillText(`Last Run — Lv ${lastRun.level} · ${lastRun.gold} Gold · ${lastRun.time}s`, canvasWidth / 2, boxY + 100);
+    }
+
+    ctx.strokeStyle = "rgba(169,129,47,0.3)";
+    ctx.beginPath();
+    ctx.moveTo(boxX + 40, boxY + 120);
+    ctx.lineTo(boxX + boxW - 40, boxY + 120);
+    ctx.stroke();
+
+    ctx.fillStyle = "#8890a6";
+    ctx.font = "13px Inter, sans-serif";
+    const controlLines = [
+      "WASD / Arrows — Move      Space — Attack",
+      "K — Shop      L — Skill Tree      Shift — Blink",
+      "Esc — Resume"
+    ];
+    controlLines.forEach((line, i) => ctx.fillText(line, canvasWidth / 2, boxY + 150 + i * 24));
   }
 
   if (player) {
@@ -1464,10 +1663,14 @@ function render() {
 
 function updateHUD() {
   if (!player) return;
-  hpLabel.textContent = `HP: ${Math.ceil(player.hp)} / ${player.maxHp}`;
-  xpLabel.textContent = `Lv ${player.level} | XP: ${player.xp} / ${player.xpToNext} | SP ${player.skillPoints || 0}`;
-  goldLabel.textContent = `Gold: ${player.gold}`;
-  statsLabel.textContent = `DMG ${player.damage} | ROF ${(60 / player.fireCooldownMax).toFixed(1)}/s | SPD ${player.speed.toFixed(1)}`;
+  const hpPct = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
+  const xpPct = Math.max(0, Math.min(100, (player.xp / player.xpToNext) * 100));
+  hpBarFill.style.width = `${hpPct}%`;
+  hpLabel.textContent = `${Math.ceil(player.hp)} / ${player.maxHp}`;
+  xpBarFill.style.width = `${xpPct}%`;
+  xpLabel.textContent = `Lv ${player.level} · ${player.xp}/${player.xpToNext}${player.skillPoints ? ` · ${player.skillPoints} SP` : ""}`;
+  goldLabel.textContent = `🪙 ${player.gold}`;
+  statsLabel.textContent = `DMG ${player.damage} · ROF ${(60 / player.fireCooldownMax).toFixed(1)}/s · SPD ${player.speed.toFixed(1)}`;
 }
 
 // ============================================================
@@ -1518,4 +1721,89 @@ window.addEventListener("load", () => {
     e.preventDefault();
     if (player && player.unlockedSkills.includes("blink") && player.blinkCharges > 0 && !uiOpen) doBlink();
   });
+
+  setupJoystick();
 });
+
+// ============================================================
+// Mobile joystick - replaces the old 4-button D-pad. Drags map to one of
+// the 4 cardinal directions (the movement system is grid-based and only
+// understands up/down/left/right, same as arrow keys), with a small
+// deadzone near center so tiny jitters don't register as input.
+// ============================================================
+function setupJoystick() {
+  const base = document.getElementById("joystickBase");
+  const knob = document.getElementById("joystickKnob");
+  if (!base || !knob) return;
+
+  const maxRadius = 38;
+  const deadzone = 12;
+  let activeTouchId = null;
+
+  function clearDirections() {
+    if (!player) return;
+    player.inputKeys["arrowup"] = false;
+    player.inputKeys["arrowdown"] = false;
+    player.inputKeys["arrowleft"] = false;
+    player.inputKeys["arrowright"] = false;
+  }
+
+  function setDirection(dx, dy) {
+    if (!player) return;
+    clearDirections();
+    if (Math.hypot(dx, dy) < deadzone) return;
+    const deg = Math.atan2(dy, dx) * 180 / Math.PI; // 0=right, 90=down, ±180=left, -90=up
+    if (deg >= -45 && deg < 45) player.inputKeys["arrowright"] = true;
+    else if (deg >= 45 && deg < 135) player.inputKeys["arrowdown"] = true;
+    else if (deg >= -135 && deg < -45) player.inputKeys["arrowup"] = true;
+    else player.inputKeys["arrowleft"] = true;
+  }
+
+  function updateKnobVisual(dx, dy) {
+    const dist = Math.min(Math.hypot(dx, dy), maxRadius);
+    const angle = Math.atan2(dy, dx);
+    const kx = Math.cos(angle) * dist, ky = Math.sin(angle) * dist;
+    knob.style.transform = `translate(calc(-50% + ${kx}px), calc(-50% + ${ky}px))`;
+  }
+
+  function resetKnob() { knob.style.transform = "translate(-50%, -50%)"; }
+
+  function findTouch(touchList, id) {
+    for (let i = 0; i < touchList.length; i++) if (touchList[i].identifier === id) return touchList[i];
+    return null;
+  }
+
+  function handleMove(touch) {
+    const rect = base.getBoundingClientRect();
+    const dx = touch.clientX - (rect.left + rect.width / 2);
+    const dy = touch.clientY - (rect.top + rect.height / 2);
+    updateKnobVisual(dx, dy);
+    setDirection(dx, dy);
+  }
+
+  base.addEventListener("touchstart", e => {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    activeTouchId = touch.identifier;
+    handleMove(touch);
+  }, { passive: false });
+
+  window.addEventListener("touchmove", e => {
+    if (activeTouchId === null) return;
+    const touch = findTouch(e.changedTouches, activeTouchId) || findTouch(e.touches, activeTouchId);
+    if (!touch) return;
+    e.preventDefault();
+    handleMove(touch);
+  }, { passive: false });
+
+  function endTouch(e) {
+    if (activeTouchId === null) return;
+    const touch = findTouch(e.changedTouches, activeTouchId);
+    if (!touch) return;
+    activeTouchId = null;
+    resetKnob();
+    clearDirections();
+  }
+  window.addEventListener("touchend", endTouch, { passive: false });
+  window.addEventListener("touchcancel", endTouch, { passive: false });
+}

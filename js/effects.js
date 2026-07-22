@@ -31,9 +31,6 @@ export const SPRITES = {
 
   // --- Ability visuals ---
   explosionBurst:   { row: 6, col: 0, frames: 4, frameSpeed: 4, rotates: false },  // explosion cloud puff
-  guardianShieldRing:{ row: 30, col: 0, frames: 1, frameSpeed: 1, rotates: false }, // plain ring (tinted blue at draw time)
-  stoneformRing:     { row: 30, col: 4, frames: 1, frameSpeed: 1, rotates: false }, // plain ring (tinted white/gray)
-  energyShieldRing:  { row: 30, col: 8, frames: 1, frameSpeed: 1, rotates: false }, // plain ring (tinted cyan)
 };
 
 let globalTick = 0;

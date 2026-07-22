@@ -53,7 +53,7 @@ export class Player {
 
     // Input state
     this.inputKeys = {};
-    this.attackPressed = false;
+    this.attackHeld = false;
 
     // === Crit system ===
     this.critChance = 0.05;
@@ -119,33 +119,14 @@ export class Player {
     window.addEventListener("keydown", e => { this.inputKeys[e.key.toLowerCase()] = true; });
     window.addEventListener("keyup", e => { this.inputKeys[e.key.toLowerCase()] = false; });
 
-    // Touch controls
-    const touchMap = {
-      "btnUp": "arrowup",
-      "btnDown": "arrowdown",
-      "btnLeft": "arrowleft",
-      "btnRight": "arrowright",
-      "btnAttack": "attack"
-    };
-
-    for (let id in touchMap) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      const key = touchMap[id];
-
-      const press = () => {
-        if (key === "attack") this.attackPressed = true;
-        else this.inputKeys[key] = true;
-      };
-
-      const release = () => {
-        if (key === "attack") this.attackPressed = false;
-        else this.inputKeys[key] = false;
-      };
-
-      el.addEventListener("touchstart", e => { e.preventDefault(); press(); }, { passive: false });
-      el.addEventListener("touchend", e => { e.preventDefault(); release(); }, { passive: false });
-      el.addEventListener("touchcancel", e => { e.preventDefault(); release(); }, { passive: false });
+    // Touch controls: attack button (movement is handled by the joystick, see game.js)
+    const attackBtn = document.getElementById("btnAttack");
+    if (attackBtn) {
+      const press = () => { this.attackHeld = true; };
+      const release = () => { this.attackHeld = false; };
+      attackBtn.addEventListener("touchstart", e => { e.preventDefault(); press(); }, { passive: false });
+      attackBtn.addEventListener("touchend", e => { e.preventDefault(); release(); }, { passive: false });
+      attackBtn.addEventListener("touchcancel", e => { e.preventDefault(); release(); }, { passive: false });
     }
   }
 
@@ -272,7 +253,7 @@ export class Player {
       this.stoneformTimer = this.stoneformDuration || 60;
       this.stoneformCooldown = this.stoneformCooldownMax || 1200;
       this.hp = Math.min(this.maxHp, this.hp + Math.floor(this.maxHp * 0.1));
-      visualEffects.push({ x: this.px + TILE_SIZE / 2, y: this.py + TILE_SIZE / 2, radius: TILE_SIZE * 1.5, life: 25, maxLife: 25, sprite: "stoneformRing" });
+      visualEffects.push({ x: this.px + TILE_SIZE / 2, y: this.py + TILE_SIZE / 2, radius: TILE_SIZE * 1.3, life: 25, maxLife: 25, sprite: "explosionBurst", tint: "#d8d8d8" });
     }
 
     // === Energy Shield recharge ===
@@ -516,14 +497,12 @@ export class Player {
       }
     };
 
-    if ((keys[" "] || this.attackPressed) && this.fireCooldown <= 0) {
+    if ((keys[" "] || this.attackHeld) && this.fireCooldown <= 0) {
       this.attacking = true;
       this.fireCooldown = Math.max(3, Math.round(this.fireCooldownMax * cooldownMult));
 
       fireVolley();
       if (this.rapidFire) fireVolley();
-
-      this.attackPressed = false;
     } else { this.attacking = false; }
 
     if (this.fireCooldown > 0) this.fireCooldown--;
@@ -595,9 +574,26 @@ export class Player {
     ctx.globalAlpha = 1;
 
     if (this.stoneformActive) {
-      drawEffect(ctx, "stoneformRing", this.px + TILE_SIZE / 2, this.py + TILE_SIZE / 2, TILE_SIZE * 1.4, 0, "#d8d8d8", 0.7);
+      // Pulsing stone-gray ring - thin outline only, not a filled blob
+      const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 150);
+      ctx.save();
+      ctx.globalAlpha = 0.5 + pulse * 0.2;
+      ctx.strokeStyle = "#d8d8d8";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(this.px + TILE_SIZE / 2, this.py + TILE_SIZE / 2, TILE_SIZE * 0.72, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
     } else if (this.energyShieldMax > 0 && this.energyShield > 0) {
-      drawEffect(ctx, "energyShieldRing", this.px + TILE_SIZE / 2, this.py + TILE_SIZE / 2, TILE_SIZE * 1.25, 0, "#5fd0ff", 0.6);
+      // Thin cyan ring - only drawn while there's actual charge to show
+      ctx.save();
+      ctx.globalAlpha = 0.45;
+      ctx.strokeStyle = "#5fd0ff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(this.px + TILE_SIZE / 2, this.py + TILE_SIZE / 2, TILE_SIZE * 0.68, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
     }
 
     ctx.fillStyle = "red";

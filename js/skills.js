@@ -1,7 +1,6 @@
 // skills.js
 import { TILE_SIZE } from "./map.js";
 import { Projectile } from "./projectile.js";
-import { drawEffect } from "./effects.js";
 
 // === Guardian Shield visuals (drawn around the player while a charge is up) ===
 export function drawGuardianShield(ctx, player) {
@@ -12,18 +11,15 @@ export function drawGuardianShield(ctx, player) {
   const shieldX = player.px + TILE_SIZE / 2 + Math.cos(player.shieldAngle) * radius;
   const shieldY = player.py + TILE_SIZE / 2 + Math.sin(player.shieldAngle) * radius;
 
-  const drew = drawEffect(ctx, "guardianShieldRing", shieldX, shieldY, 26, 0, "#5fb8ff", 0.6);
-  if (!drew) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(shieldX, shieldY, 15, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(135,206,250,0.6)";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(30,144,255,0.9)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-  }
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(shieldX, shieldY, 15, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(135,206,250,0.6)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(30,144,255,0.9)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
 }
 
 // === Chain Lightning: bounces the hit to a nearby enemy ===
