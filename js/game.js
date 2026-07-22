@@ -1012,25 +1012,30 @@ let simAccumulator = 0;
 function mainLoop(timestamp) {
   if (isDead) return;
 
-  if (!lastFrameTime) lastFrameTime = timestamp;
-  let frameTime = timestamp - lastFrameTime;
-  lastFrameTime = timestamp;
-  if (frameTime > MAX_FRAME_TIME) frameTime = MAX_FRAME_TIME;
+  try {
+    if (!lastFrameTime) lastFrameTime = timestamp;
+    let frameTime = timestamp - lastFrameTime;
+    lastFrameTime = timestamp;
+    if (frameTime > MAX_FRAME_TIME) frameTime = MAX_FRAME_TIME;
 
-  simAccumulator += frameTime;
+    simAccumulator += frameTime;
 
-  // Run the simulation at a fixed cadence (60 ticks/sec) no matter how often
-  // the browser actually calls requestAnimationFrame. This is what keeps
-  // movement speed, cooldowns, spawn rate, and animations identical across
-  // 60Hz, 120Hz, 144Hz+ displays instead of scaling with refresh rate.
-  let ticks = 0;
-  while (simAccumulator >= SIM_DT && ticks < 5) {
-    if (!paused) updateWorld();
-    simAccumulator -= SIM_DT;
-    ticks++;
+    // Run the simulation at a fixed cadence (60 ticks/sec) no matter how often
+    // the browser actually calls requestAnimationFrame. This is what keeps
+    // movement speed, cooldowns, spawn rate, and animations identical across
+    // 60Hz, 120Hz, 144Hz+ displays instead of scaling with refresh rate.
+    let ticks = 0;
+    while (simAccumulator >= SIM_DT && ticks < 5) {
+      if (!paused) updateWorld();
+      simAccumulator -= SIM_DT;
+      ticks++;
+    }
+
+    render();
+  } catch (err) {
+    console.error("mainLoop error (recovered):", err);
   }
 
-  render();
   animationFrameId = requestAnimationFrame(mainLoop);
 }
 
@@ -1677,52 +1682,64 @@ function updateHUD() {
 // Boot
 // ============================================================
 window.addEventListener("load", () => {
-  canvas = document.getElementById("gameCanvas");
-  ctx = canvas.getContext("2d");
-  canvasWidth = canvas.width;
-  canvasHeight = canvas.height;
+  try {
+    canvas = document.getElementById("gameCanvas");
+    ctx = canvas.getContext("2d");
+    canvasWidth = canvas.width;
+    canvasHeight = canvas.height;
 
-  map.load(MAP1_PATH).then(() => showCharacterSelect());
+    map.load(MAP1_PATH).then(() => showCharacterSelect()).catch(err => {
+      console.error("Failed to load map:", err);
+      const container = document.getElementById("characterSelect");
+      if (container) {
+        container.classList.add("panel");
+        container.style.display = "block";
+        container.innerHTML = `<h2 style="color:#ff6b6b;">Failed to load</h2><p style="color:var(--text-dim); font-size:13px;">Could not load the map. Check your connection and reload the page.</p><button class="btn" onclick="location.reload()">Reload</button>`;
+      }
+    });
 
-  canvas.addEventListener("mousemove", e => {
-    const rect = canvas.getBoundingClientRect();
-    mouse.x = e.clientX - rect.left;
-    mouse.y = e.clientY - rect.top;
-  });
+    canvas.addEventListener("mousemove", e => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
 
-  canvas.addEventListener("click", () => {
-    if (isDead) showCharacterSelect();
-  });
+    canvas.addEventListener("click", () => {
+      if (isDead) showCharacterSelect();
+    });
 
-  ensureSkillTreeUI();
+    ensureSkillTreeUI();
 
-  // Wire the on-screen Shop / Skill Tree buttons (added in index.html)
-  const shopBtn = document.getElementById("shopBtn");
-  if (shopBtn) shopBtn.addEventListener("click", openShop);
+    // Wire the on-screen Shop / Skill Tree buttons (added in index.html)
+    const shopBtn = document.getElementById("shopBtn");
+    if (shopBtn) shopBtn.addEventListener("click", openShop);
 
-  const skillsBtn = document.getElementById("skillsBtn");
-  if (skillsBtn) skillsBtn.addEventListener("click", () => {
-    if (skillTreeOpen) closeSkillTree();
-    else if (!isDead) openSkillTree();
-  });
+    const skillsBtn = document.getElementById("skillsBtn");
+    if (skillsBtn) skillsBtn.addEventListener("click", () => {
+      if (skillTreeOpen) closeSkillTree();
+      else if (!isDead) openSkillTree();
+    });
 
-  const mobileShopBtn = document.getElementById("btnShop");
-  if (mobileShopBtn) mobileShopBtn.addEventListener("touchstart", e => { e.preventDefault(); openShop(); });
+    const mobileShopBtn = document.getElementById("btnShop");
+    if (mobileShopBtn) mobileShopBtn.addEventListener("touchstart", e => { e.preventDefault(); openShop(); });
 
-  const mobileSkillsBtn = document.getElementById("btnSkills");
-  if (mobileSkillsBtn) mobileSkillsBtn.addEventListener("touchstart", e => {
-    e.preventDefault();
-    if (skillTreeOpen) closeSkillTree();
-    else if (!isDead) openSkillTree();
-  });
+    const mobileSkillsBtn = document.getElementById("btnSkills");
+    if (mobileSkillsBtn) mobileSkillsBtn.addEventListener("touchstart", e => {
+      e.preventDefault();
+      if (skillTreeOpen) closeSkillTree();
+      else if (!isDead) openSkillTree();
+    });
 
-  const mobileBlinkBtn = document.getElementById("btnSpecial");
-  if (mobileBlinkBtn) mobileBlinkBtn.addEventListener("touchstart", e => {
-    e.preventDefault();
-    if (player && player.unlockedSkills.includes("blink") && player.blinkCharges > 0 && !uiOpen) doBlink();
-  });
+    const mobileBlinkBtn = document.getElementById("btnSpecial");
+    if (mobileBlinkBtn) mobileBlinkBtn.addEventListener("touchstart", e => {
+      e.preventDefault();
+      if (player && player.unlockedSkills.includes("blink") && player.blinkCharges > 0 && !uiOpen) doBlink();
+    });
 
-  setupJoystick();
+    setupJoystick();
+  } catch (err) {
+    console.error("Boot sequence error:", err);
+  }
 });
 
 // ============================================================
@@ -1730,80 +1747,83 @@ window.addEventListener("load", () => {
 // the 4 cardinal directions (the movement system is grid-based and only
 // understands up/down/left/right, same as arrow keys), with a small
 // deadzone near center so tiny jitters don't register as input.
+//
+// Uses Pointer Events + setPointerCapture rather than raw touch events:
+// once a pointer is captured, every subsequent move/up for that exact
+// pointer is routed straight to this element automatically, so there's no
+// need to track touch identifiers manually or attach listeners to window.
 // ============================================================
 function setupJoystick() {
-  const base = document.getElementById("joystickBase");
-  const knob = document.getElementById("joystickKnob");
-  if (!base || !knob) return;
+  try {
+    const base = document.getElementById("joystickBase");
+    const knob = document.getElementById("joystickKnob");
+    if (!base || !knob) return;
 
-  const maxRadius = 38;
-  const deadzone = 12;
-  let activeTouchId = null;
+    const maxRadius = 38;
+    const deadzone = 12;
+    let activePointerId = null;
 
-  function clearDirections() {
-    if (!player) return;
-    player.inputKeys["arrowup"] = false;
-    player.inputKeys["arrowdown"] = false;
-    player.inputKeys["arrowleft"] = false;
-    player.inputKeys["arrowright"] = false;
+    function clearDirections() {
+      if (!player) return;
+      player.inputKeys["arrowup"] = false;
+      player.inputKeys["arrowdown"] = false;
+      player.inputKeys["arrowleft"] = false;
+      player.inputKeys["arrowright"] = false;
+    }
+
+    function setDirection(dx, dy) {
+      if (!player) return;
+      clearDirections();
+      if (Math.hypot(dx, dy) < deadzone) return;
+      const deg = Math.atan2(dy, dx) * 180 / Math.PI; // 0=right, 90=down, ±180=left, -90=up
+      if (deg >= -45 && deg < 45) player.inputKeys["arrowright"] = true;
+      else if (deg >= 45 && deg < 135) player.inputKeys["arrowdown"] = true;
+      else if (deg >= -135 && deg < -45) player.inputKeys["arrowup"] = true;
+      else player.inputKeys["arrowleft"] = true;
+    }
+
+    function updateKnobVisual(dx, dy) {
+      const dist = Math.min(Math.hypot(dx, dy), maxRadius);
+      const angle = Math.atan2(dy, dx);
+      const kx = Math.cos(angle) * dist, ky = Math.sin(angle) * dist;
+      knob.style.transform = `translate(calc(-50% + ${kx}px), calc(-50% + ${ky}px))`;
+    }
+
+    function resetKnob() { knob.style.transform = "translate(-50%, -50%)"; }
+
+    function handleMove(clientX, clientY) {
+      const rect = base.getBoundingClientRect();
+      const dx = clientX - (rect.left + rect.width / 2);
+      const dy = clientY - (rect.top + rect.height / 2);
+      updateKnobVisual(dx, dy);
+      setDirection(dx, dy);
+    }
+
+    base.addEventListener("pointerdown", e => {
+      e.preventDefault();
+      activePointerId = e.pointerId;
+      if (base.setPointerCapture) {
+        try { base.setPointerCapture(e.pointerId); } catch (err) { /* ignore capture failures */ }
+      }
+      handleMove(e.clientX, e.clientY);
+    });
+
+    base.addEventListener("pointermove", e => {
+      if (e.pointerId !== activePointerId) return;
+      e.preventDefault();
+      handleMove(e.clientX, e.clientY);
+    });
+
+    function releasePointer(e) {
+      if (e.pointerId !== activePointerId) return;
+      activePointerId = null;
+      resetKnob();
+      clearDirections();
+    }
+    base.addEventListener("pointerup", releasePointer);
+    base.addEventListener("pointercancel", releasePointer);
+    base.addEventListener("lostpointercapture", releasePointer);
+  } catch (err) {
+    console.error("Joystick setup failed:", err);
   }
-
-  function setDirection(dx, dy) {
-    if (!player) return;
-    clearDirections();
-    if (Math.hypot(dx, dy) < deadzone) return;
-    const deg = Math.atan2(dy, dx) * 180 / Math.PI; // 0=right, 90=down, ±180=left, -90=up
-    if (deg >= -45 && deg < 45) player.inputKeys["arrowright"] = true;
-    else if (deg >= 45 && deg < 135) player.inputKeys["arrowdown"] = true;
-    else if (deg >= -135 && deg < -45) player.inputKeys["arrowup"] = true;
-    else player.inputKeys["arrowleft"] = true;
-  }
-
-  function updateKnobVisual(dx, dy) {
-    const dist = Math.min(Math.hypot(dx, dy), maxRadius);
-    const angle = Math.atan2(dy, dx);
-    const kx = Math.cos(angle) * dist, ky = Math.sin(angle) * dist;
-    knob.style.transform = `translate(calc(-50% + ${kx}px), calc(-50% + ${ky}px))`;
-  }
-
-  function resetKnob() { knob.style.transform = "translate(-50%, -50%)"; }
-
-  function findTouch(touchList, id) {
-    for (let i = 0; i < touchList.length; i++) if (touchList[i].identifier === id) return touchList[i];
-    return null;
-  }
-
-  function handleMove(touch) {
-    const rect = base.getBoundingClientRect();
-    const dx = touch.clientX - (rect.left + rect.width / 2);
-    const dy = touch.clientY - (rect.top + rect.height / 2);
-    updateKnobVisual(dx, dy);
-    setDirection(dx, dy);
-  }
-
-  base.addEventListener("touchstart", e => {
-    e.preventDefault();
-    const touch = e.changedTouches[0];
-    activeTouchId = touch.identifier;
-    handleMove(touch);
-  }, { passive: false });
-
-  window.addEventListener("touchmove", e => {
-    if (activeTouchId === null) return;
-    const touch = findTouch(e.changedTouches, activeTouchId) || findTouch(e.touches, activeTouchId);
-    if (!touch) return;
-    e.preventDefault();
-    handleMove(touch);
-  }, { passive: false });
-
-  function endTouch(e) {
-    if (activeTouchId === null) return;
-    const touch = findTouch(e.changedTouches, activeTouchId);
-    if (!touch) return;
-    activeTouchId = null;
-    resetKnob();
-    clearDirections();
-  }
-  window.addEventListener("touchend", endTouch, { passive: false });
-  window.addEventListener("touchcancel", endTouch, { passive: false });
 }
