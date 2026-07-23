@@ -75,9 +75,15 @@ function findPath(startX, startY, endX, endY, map, avoidTile = true) {
   const closedSet = new Set();
   const hash = (x, y) => `${x},${y}`;
 
-  while (openSet.length > 0) {
-    openSet.sort((a, b) => a.f - b.f);
-    const current = openSet.shift();
+  let iterations = 0;
+  const MAX_ITERATIONS = 400;
+
+  while (openSet.length > 0 && iterations++ < MAX_ITERATIONS) {
+    // Min-scan for lowest f instead of fully re-sorting the open list on
+    // every single node expansion (O(n) vs O(n log n) per step).
+    let bestIdx = 0;
+    for (let i = 1; i < openSet.length; i++) if (openSet[i].f < openSet[bestIdx].f) bestIdx = i;
+    const current = openSet.splice(bestIdx, 1)[0];
 
     if ((avoidTile && Math.abs(current.x - endX) + Math.abs(current.y - endY) === 1) ||
         (!avoidTile && current.x === endX && current.y === endY)) {
@@ -191,16 +197,23 @@ export class Enemy {
     }
 
     // ==== SNIPER: holds a preferred range, backs off if the player closes in ====
+    // Path recompute is throttled (every 8 frames) - this was the only AI
+    // running a full A* query per frame, which added up fast with several
+    // snipers alive at once.
     if (this.aiType === "sniper") {
-      const desiredRange = 6;
-      if (distance < desiredRange - 1) {
-        const fleeX = this.x + Math.sign(this.x - player.x || (Math.random() < 0.5 ? 1 : -1)) * 4;
-        const fleeY = this.y + Math.sign(this.y - player.y || (Math.random() < 0.5 ? 1 : -1)) * 4;
-        this.path = findPath(this.x, this.y, fleeX, fleeY, map, true);
-      } else if (distance > desiredRange + 2) {
-        this.path = findPath(this.x, this.y, player.x, player.y, map, true);
-      } else {
-        this.path = [];
+      this._sniperPathTicker = (this._sniperPathTicker || 0) + 1;
+      if (this._sniperPathTicker >= 8 || !this.path) {
+        this._sniperPathTicker = 0;
+        const desiredRange = 6;
+        if (distance < desiredRange - 1) {
+          const fleeX = this.x + Math.sign(this.x - player.x || (Math.random() < 0.5 ? 1 : -1)) * 4;
+          const fleeY = this.y + Math.sign(this.y - player.y || (Math.random() < 0.5 ? 1 : -1)) * 4;
+          this.path = findPath(this.x, this.y, fleeX, fleeY, map, true);
+        } else if (distance > desiredRange + 2) {
+          this.path = findPath(this.x, this.y, player.x, player.y, map, true);
+        } else {
+          this.path = [];
+        }
       }
     }
 

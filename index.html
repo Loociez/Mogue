@@ -468,22 +468,45 @@
     }
 
     function resizeCanvas() {
-      const aspect = 1024 / 768;
+      // Sizing strategy that eliminates the tile-seam bleed during camera
+      // motion: pick a display size where every world tile spans a whole
+      // integer number of screen pixels. Any fractional CSS scale (e.g.
+      // showing a 1024px-wide canvas in a 907px slot) causes the browser
+      // to interpolate edges and produces the moving-seam artifacts.
+      const zoom = 2;                     // world pixels per screen pixel (integer)
+      const worldTilePx = 32;             // TILE_SIZE
+      const screenTilePx = worldTilePx * zoom; // 64 screen px per tile
+
       const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
       const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
       const maxWidth = vw;
-      const maxHeight = vh - hud.offsetHeight - 16; // leave room for HUD
-      let width = maxWidth;
-      let height = width / aspect;
+      const maxHeight = vh - hud.offsetHeight - 16;
 
-      if (height > maxHeight) {
-        height = maxHeight;
-        width = height * aspect;
-      }
+      // Round the viewport down to a whole number of full tiles, both ways.
+      const cols = Math.max(8, Math.floor(maxWidth / screenTilePx));
+      const rows = Math.max(6, Math.floor(maxHeight / screenTilePx));
 
-      canvas.style.width = width + "px";
-      canvas.style.height = height + "px";
+      const displayWidth = cols * screenTilePx;
+      const displayHeight = rows * screenTilePx;
+
+      // Match the canvas backing store to the display size exactly - no CSS
+      // stretching at all. Every source pixel = exactly one display pixel.
+      canvas.width = displayWidth;
+      canvas.height = displayHeight;
+      canvas.style.width = displayWidth + "px";
+      canvas.style.height = displayHeight + "px";
+
+      // Setting canvas.width/height resets the 2D context state, so redo the
+      // smoothing flags (matches what game.js does on boot).
+      const ctx2 = canvas.getContext("2d");
+      ctx2.imageSmoothingEnabled = false;
+      ctx2.mozImageSmoothingEnabled = false;
+      ctx2.webkitImageSmoothingEnabled = false;
+      ctx2.msImageSmoothingEnabled = false;
+
+      // Let the game code know the new canvas dimensions.
+      if (typeof window.onCanvasResize === "function") window.onCanvasResize(displayWidth, displayHeight);
     }
 
     window.addEventListener("resize", resizeCanvas);

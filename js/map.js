@@ -112,12 +112,20 @@ export const map = {
   applyTileEffects(entity, x, y) {
     const ground = this.layers.ground[y]?.[x];
     const obj = this.layers.objects[y]?.[x];
+    const hasDamage = (ground?.attributes?.damage) || (obj?.attributes?.damage);
+    const hasHealing = (ground?.attributes?.healing) || (obj?.attributes?.healing);
+    if (!hasDamage && !hasHealing) { entity._tileEffectCd = 0; return; }
 
-    [ground, obj].forEach(tile => {
-      if (!tile?.attributes) return;
-      if (tile.attributes.damage) entity.hp -= 10;
-      if (tile.attributes.healing) entity.hp = Math.min(entity.hp + 10, entity.maxHp);
-    });
+    // Rate-limit: this is called every frame for entities standing on a
+    // tile. Without a cooldown, a damage tile dealt 10 HP per frame
+    // (600/sec) - enemies pathing over lava on the volcanic maps melted
+    // almost instantly. ~3 ticks/sec keeps hazards dangerous but fair.
+    entity._tileEffectCd = (entity._tileEffectCd || 0) - 1;
+    if (entity._tileEffectCd > 0) return;
+    entity._tileEffectCd = 20;
+
+    if (hasDamage) entity.hp -= 10;
+    if (hasHealing) entity.hp = Math.min(entity.hp + 10, entity.maxHp);
   },
 
   updateAnimation() {
@@ -132,51 +140,69 @@ export const map = {
   draw(ctx) {
     if (!this.layers.ground) return;
 
+    const lights = []; // collected during the main pass; avoids a second full-map sweep
+
     for (let y = 0; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         // --- Ground & GroundAnim ---
-        ["ground","groundAnim"].forEach(layerName => {
-          let tile = this.layers[layerName][y]?.[x];
-          if (!tile) return;
-          if (Array.isArray(tile.tileId) && tile.tileId.length > 0) {
-            const frame = this.animFrame % tile.tileId.length;
-            tile = { ...tile, tileId: tile.tileId[frame] };
-          } else if (Array.isArray(tile.tileId) && tile.tileId.length === 0) {
-            return;
-          }
-          this.drawTile(ctx, tile, x, y);
-        });
+        let gTile = this.layers.ground[y]?.[x];
+        if (gTile) {
+          if (Array.isArray(gTile.tileId)) {
+            if (gTile.tileId.length > 0) this.drawTileFrame(ctx, gTile, gTile.tileId[this.animFrame % gTile.tileId.length], x, y);
+          } else this.drawTile(ctx, gTile, x, y);
+          if (gTile.attributes?.light) lights.push([gTile, x, y]);
+        }
+        let gaTile = this.layers.groundAnim[y]?.[x];
+        if (gaTile) {
+          if (Array.isArray(gaTile.tileId)) {
+            if (gaTile.tileId.length > 0) this.drawTileFrame(ctx, gaTile, gaTile.tileId[this.animFrame % gaTile.tileId.length], x, y);
+          } else this.drawTile(ctx, gaTile, x, y);
+          if (gaTile.attributes?.light) lights.push([gaTile, x, y]);
+        }
 
         // --- Mid objects ---
-        let baseObj = this.layers.objects[y]?.[x];
-        let animObj = this.layers.objectAnim[y]?.[x];
+        const baseObj = this.layers.objects[y]?.[x];
+        const animObj = this.layers.objectAnim[y]?.[x];
         let objTile = baseObj && animObj ? (this.animFrame % 2 === 0 ? baseObj : animObj) : animObj || baseObj;
-        if (objTile && Array.isArray(objTile.tileId) && objTile.tileId.length > 0)
-          objTile = { ...objTile, tileId: objTile.tileId[this.animFrame % objTile.tileId.length] };
-        if (objTile) this.drawTile(ctx, objTile, x, y);
+        if (objTile) {
+          if (Array.isArray(objTile.tileId)) {
+            if (objTile.tileId.length > 0) this.drawTileFrame(ctx, objTile, objTile.tileId[this.animFrame % objTile.tileId.length], x, y);
+          } else this.drawTile(ctx, objTile, x, y);
+        }
+        if (baseObj?.attributes?.light) lights.push([baseObj, x, y]);
+        if (animObj?.attributes?.light) lights.push([animObj, x, y]);
 
         // --- Front objects ---
-        let baseObj2 = this.layers.object2[y]?.[x];
-        let animObj2 = this.layers.object2Anim[y]?.[x];
+        const baseObj2 = this.layers.object2[y]?.[x];
+        const animObj2 = this.layers.object2Anim[y]?.[x];
         let obj2Tile = baseObj2 && animObj2 ? (this.animFrame % 2 === 0 ? baseObj2 : animObj2) : animObj2 || baseObj2;
-        if (obj2Tile && Array.isArray(obj2Tile.tileId) && obj2Tile.tileId.length > 0)
-          obj2Tile = { ...obj2Tile, tileId: obj2Tile.tileId[this.animFrame % obj2Tile.tileId.length] };
-        if (obj2Tile) this.drawTile(ctx, obj2Tile, x, y);
+        if (obj2Tile) {
+          if (Array.isArray(obj2Tile.tileId)) {
+            if (obj2Tile.tileId.length > 0) this.drawTileFrame(ctx, obj2Tile, obj2Tile.tileId[this.animFrame % obj2Tile.tileId.length], x, y);
+          } else this.drawTile(ctx, obj2Tile, x, y);
+        }
+        if (baseObj2?.attributes?.light) lights.push([baseObj2, x, y]);
+        if (animObj2?.attributes?.light) lights.push([animObj2, x, y]);
       }
     }
 
-    // --- Lights ---
-    for (let y = 0; y < this.height; y++) {
-      for (let x = 0; x < this.width; x++) {
-        ["ground","groundAnim","objects","objectAnim","object2","object2Anim"].forEach(layerName => {
-          const tile = this.layers[layerName][y]?.[x];
-          if (tile?.attributes?.light) this.drawLight(ctx, tile, x, y);
-        });
-      }
-    }
+    // --- Lights (drawn over everything) ---
+    for (const [tile, lx, ly] of lights) this.drawLight(ctx, tile, lx, ly);
 
     // --- Draw rain after map ---
     this.drawRain(ctx);
+  },
+
+  // Draws a specific frame of an animated (array tileId) tile without
+  // allocating a cloned tile object per call like the old path did.
+  drawTileFrame(ctx, tile, frameId, x, y) {
+    if (typeof frameId !== "number") return;
+    const ts = tilesetImages[tile.tileset ?? 0];
+    if (!ts || !ts.complete || !ts.naturalWidth) return;
+    const tilesPerRow = Math.max(1, Math.floor(ts.naturalWidth / TILE_SIZE));
+    const sx = (frameId % tilesPerRow) * TILE_SIZE;
+    const sy = Math.floor(frameId / tilesPerRow) * TILE_SIZE;
+    ctx.drawImage(ts, sx, sy, TILE_SIZE, TILE_SIZE, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   },
 
   drawTile(ctx, tile, x, y) {

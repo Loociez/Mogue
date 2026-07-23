@@ -1051,6 +1051,8 @@ function mainLoop(timestamp) {
 function updateWorld() {
   frameCount++;
   tickEffects();
+  map.updateAnimation();
+  map.updateRain(canvasWidth, canvasHeight);
   if (player?.blinkCooldownTimer > 0) player.blinkCooldownTimer--;
 
   if (frameCount % 300 === 0) {
@@ -1510,8 +1512,7 @@ function render() {
   ctx.scale(camera.zoom, camera.zoom);
   ctx.translate(-camera.x, -camera.y);
 
-  map.draw(ctx);
-  map.drawRain(ctx);
+  map.draw(ctx); // note: map.draw() ends by calling drawRain() itself
 
   ctx.save();
   for (const p of deathParticles) {
